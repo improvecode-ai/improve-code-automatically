@@ -1,2 +1,2 @@
 # improve-code-automatically
-AI tools that automatically improve your code
+Improve your code automatically with AI tools
