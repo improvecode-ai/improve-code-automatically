@@ -28,3 +28,7 @@ More at [improvecode.ai](https://improvecode.ai)
 ---
  
 *improvecode.ai — code quality for the AI era*
+
+//todo:
+- generate some examples for sonar (most usefull) rules, not all because there is no sens
+- add AI safe refactoring
