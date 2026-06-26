@@ -204,7 +204,7 @@
 
 \---
 
-### SECURITY
+### SECURITY (MECHANICAL)
 
 \[A] Remove `runFinalizersOnExit()` call (S2151)
 \[A] `request.getRequestedSessionId()` → `request.getSession().getId()` (S2254)

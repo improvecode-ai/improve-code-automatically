@@ -127,3 +127,4 @@ Every rule in this file is:
 | [`sonarqube-ai-fix-prompts.md`](./sonarqube-ai-fix-prompts.md)             | 4 ready-to-use prompts (FIX ALL, CATEGORY, PR, SONAR REPORT) |
 | [`sonarqube-ai-fix-prompts-rules.md`](./sonarqube-ai-fix-prompts-rules.md) | Full RULES REFERENCE — 165 rules with auto-fix `[A]` and flag-only `[F]` annotations |
 | [`sonarqube-excluded-rules.md`](./sonarqube-excluded-rules.md)             | 113 excluded rules with documented reasons — Breaking, Conditional, Re-audit, Removed |
+| [`sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md`](./sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md) | The same 165 rules in an expanded, human-readable form — fuller per-rule descriptions and examples |

@@ -4,7 +4,7 @@
 
 ### How to use
 
-📄 For overview, use cases, and time-saving stats see `sonarqube-ai-fix-prompts-info.md`
+📄 For overview, use cases, and time-saving stats see `README.md`
 
 💡 **Quickest way:** attach this file to Claude Code or Copilot Chat and type e.g. `Fix all SonarQube issues in src/main/java/com/example/order` — no prompt copying or editing needed.
 
@@ -177,7 +177,7 @@ Claude Code reads `CLAUDE.md` (and any `CLAUDE.md` in sub-directories) automatic
 2. Paste the full content of `sonarqube-ai-fix-prompts-rules.md` into it, or add a note like:
 
 ```
-   See temp/sonarqube-ai-fix-prompts-rules.md for the SonarQube RULES REFERENCE.
+   See sonarqube-ai-fix-prompts-rules.md for the SonarQube RULES REFERENCE.
    ```
 
 3. Claude will treat the rules as persistent project context without requiring a manual attachment.
