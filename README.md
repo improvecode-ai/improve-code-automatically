@@ -31,4 +31,4 @@ More at [improvecode.ai](https://improvecode.ai)
 
 //todo:
 - generate some examples for sonar (most usefull) rules, not all because there is no sens
-- add AI safe refactoring
+- add AI safe refactoring added sth
