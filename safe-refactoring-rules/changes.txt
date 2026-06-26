@@ -23,3 +23,4 @@ Zaczynam od przeczytania aktualnych promptów, żeby wiedzieć co dokładnie akt
 **Mega prompty** mają teraz Step 1 — "read pom.xml once" przed przetwarzaniem plików, co pozwala Claude Code wiedzieć od razu: wersja Java, Lombok, AssertJ, dominant logger — bez czytania tego per plik.
 
 **Formatowanie i styl** jako jedyna kategoria używa `scan-then-fix` — bo ujednolicenie loggerów wymaga wiedzieć co dominuje w pakiecie zanim zaczniesz zmieniać poszczególne pliki.
+
