@@ -1,0 +1,25 @@
+Zaczynam od przeczytania aktualnych promptów, żeby wiedzieć co dokładnie aktualizuję:Mam pełny obraz. Teraz przepiszę wszystkie prompty z optymalną strategią dla każdej kategorii:Gotowe. Oto co zmieniło się w stosunku do poprzedniej wersji:
+
+---
+
+## Co zostało zoptymalizowane
+
+**Każda kategoria ma teraz jawną strategię** z uzasadnieniem:
+
+| Kategoria | Strategia | Dlaczego |
+|---|---|---|
+| Naming | file-by-file | decyzje lokalne |
+| Logic | file-by-file | pattern matching lokalne |
+| Structure | file-by-file | dead code i stałe lokalne |
+| Null Safety | file-by-file | analiza użycia w jednym pliku |
+| Immutability | single-pass | czysto mechaniczne |
+| Formatting | **scan-then-fix** | spójność loggerów wymaga widzenia wszystkich plików |
+| Exceptions | file-by-file | obsługa lokalna |
+| Boilerplate | file-by-file | @Override to analiza kompilatora |
+| Collections | single-pass | pattern matching |
+| Comments | file-by-file | lokalna ocena |
+| Tests | single-pass | text replacement |
+
+**Mega prompty** mają teraz Step 1 — "read pom.xml once" przed przetwarzaniem plików, co pozwala Claude Code wiedzieć od razu: wersja Java, Lombok, AssertJ, dominant logger — bez czytania tego per plik.
+
+**Formatowanie i styl** jako jedyna kategoria używa `scan-then-fix` — bo ujednolicenie loggerów wymaga wiedzieć co dominuje w pakiecie zanim zaczniesz zmieniać poszczególne pliki.

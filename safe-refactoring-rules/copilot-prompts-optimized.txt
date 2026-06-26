@@ -1,0 +1,240 @@
+
+Jasne, Radosław — poniżej masz wersję zoptymalizowaną pod GitHub Copilot (GPT‑5.4 / GPT‑5.3‑codex) dla wszystkich 10 grup, w 3 trybach:
+• Educational — Copilot tylko komentuje i tłumaczy
+• Ultra‑Safe — Copilot wykonuje tylko 100% pewne zmiany
+• Aggressive — Copilot robi maksymalnie dużo, ale bez zmiany logiki
+
+Każdy prompt jest:
+◇ krótki,
+◇ imperatywny,
+◇ checklistowy,
+◇ zrozumiały dla Copilota,
+◇ działający na module/pakiecie,
+◇ bez długich opisów, które Copilot ignoruje.
+
+To jest wersja finalna, produkcyjna, gotowa do użycia w IDE.
+
+⭐ 1. NAMING — Copilot‑Optimized Prompts
+
+🎓 Educational
+Do NOT modify code.  
+Review this module/package and comment on naming issues.  
+Identify unclear names, abbreviations, generic method names, and boolean naming problems.  
+Explain why they are problematic and propose better technical names.
+
+🛡 Ultra‑Safe
+Refactor naming in this module/package using only safe technical changes:  
+- expand abbreviations  
+- improve boolean names  
+- replace generic method names with technical ones  
+- improve variable names based on usage  
+Do NOT rename domain concepts or public APIs.  
+Apply changes only inside this module.
+
+🔥 Aggressive
+Aggressively refactor naming in this module/package:  
+- expand all abbreviations  
+- rename generic methods  
+- unify naming conventions  
+- rename helper/manager/utils classes  
+- improve all variable names  
+Do NOT change business logic.  
+Apply changes only inside this module.
+
+⭐ 2. LOGIC SIMPLIFICATION
+
+🎓 Educational
+Do NOT modify code.  
+Review this module/package and comment where logic can be simplified:  
+guard clauses, boolean extraction, negation removal, boolean flags.  
+Explain improvements with examples.
+
+🛡 Ultra‑Safe
+Simplify logic safely in this module/package:  
+- convert nested ifs to guard clauses  
+- extract complex boolean expressions  
+- remove unnecessary negations  
+- simplify boolean comparisons  
+Do NOT change logic or method signatures.
+
+🔥 Aggressive
+Aggressively simplify logic in this module/package:  
+- rewrite nested conditionals  
+- extract all multi‑condition expressions  
+- remove boolean flags (split methods if needed)  
+- unify logical structure  
+Do NOT change business logic.
+
+⭐ 3. CODE STRUCTURE
+
+🎓 Educational
+Do NOT modify code.  
+Review structural issues: magic numbers, dead code, println usage, class ordering, anonymous classes.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe structural refactoring:  
+- extract repeated magic numbers  
+- remove unused imports and commented code  
+- replace println with logger  
+- reorder class elements safely  
+- convert trivial anonymous classes to lambdas
+
+🔥 Aggressive
+Aggressively refactor structure:  
+- extract all magic numbers  
+- remove all dead code  
+- enforce consistent class structure  
+- convert all anonymous classes to lambdas  
+- convert lambdas to method references  
+- unify logger usage
+
+⭐ 4. NULL SAFETY
+
+🎓 Educational
+Do NOT modify code.  
+Review null‑safety issues: missing annotations, null returns, missing validation, Optional usage.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Improve null‑safety safely:  
+- add @NotNull/@Nullable based on usage  
+- replace return null with empty collections  
+- add Objects.requireNonNull at boundaries  
+Do NOT introduce Optional unless already used.
+
+🔥 Aggressive
+Aggressively improve null‑safety:  
+- annotate all parameters and returns  
+- replace all null returns with safe alternatives  
+- convert null‑handling to Optional where appropriate  
+- enforce fail‑fast validation
+
+⭐ 5. IMMUTABILITY
+
+🎓 Educational
+Do NOT modify code.  
+Review immutability issues: missing final, mutable collections, unnecessary wrappers, mutable fields.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe immutability improvements:  
+- add final where variables are never reassigned  
+- replace new ArrayList() with List.of() when not modified  
+- replace wrappers with primitives when null is impossible
+
+🔥 Aggressive
+Aggressively enforce immutability:  
+- add final everywhere possible  
+- convert all immutable collections to List.of()/Map.of()  
+- replace wrappers with primitives  
+- mark fields final when safe
+
+⭐ 6. FORMATTING & STYLE
+
+🎓 Educational
+Do NOT modify code.  
+Review formatting issues: indentation, spacing, blank lines, imports, logger usage.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe formatting:  
+- unify indentation  
+- add blank lines between logical blocks  
+- clean up imports  
+- unify bracket style
+
+🔥 Aggressive
+Aggressively unify style:  
+- enforce consistent formatting across all files  
+- unify logger usage  
+- unify constant naming  
+- enforce consistent method ordering
+
+⭐ 7. EXCEPTIONS
+
+🎓 Educational
+Do NOT modify code.  
+Review exception handling: empty catches, broad catches, unnecessary try/catch, missing logging.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe exception improvements:  
+- replace empty catch with logging  
+- narrow catch types when obvious  
+- remove unnecessary casts
+
+🔥 Aggressive
+Aggressively refactor exceptions:  
+- rewrite all empty catches  
+- narrow all broad catches  
+- remove redundant try/catch  
+- unify exception‑handling style
+
+⭐ 8. ANNOTATIONS & BOILERPLATE
+
+🎓 Educational
+Do NOT modify code.  
+Review annotation and boilerplate issues: missing @Override, manual getters/setters, manual equals/hashCode.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe annotation improvements:  
+- add @Override  
+- replace trivial getters/setters with Lombok  
+- replace trivial equals/hashCode with Lombok
+
+🔥 Aggressive
+Aggressively reduce boilerplate:  
+- convert all getters/setters to Lombok  
+- convert all builders to @Builder  
+- convert all equals/hashCode to Lombok  
+- generate constructors
+
+⭐ 9. LOOPS & COLLECTIONS
+
+🎓 Educational
+Do NOT modify code.  
+Review loops and collections: index loops, raw types, mutable collections, missing generics.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe loop/collection improvements:  
+- replace index loops with for‑each when index unused  
+- add generics  
+- add diamond operator
+
+🔥 Aggressive
+Aggressively refactor loops/collections:  
+- convert loops to streams  
+- replace mutable collections with immutable ones  
+- enforce generics everywhere
+
+⭐ 10. COMMENTS & DOCUMENTATION
+
+🎓 Educational
+Do NOT modify code.  
+Review comments and documentation: redundant comments, commented‑out code, unclear TODOs, missing Javadoc.  
+Explain improvements.
+
+🛡 Ultra‑Safe
+Apply safe documentation cleanup:  
+- remove commented‑out code  
+- remove comments describing “what”  
+- normalize TODO/FIXME
+
+🔥 Aggressive
+Aggressively refactor documentation:  
+- remove all redundant comments  
+- rewrite unclear TODOs  
+- improve Javadoc  
+- enforce consistent documentation style
+
+⭐ Chcesz teraz:
+
+🔹 jedną wersję ALL‑IN‑ONE zoptymalizowaną pod Copilota?
+
+🔹 wersję „Architect‑Level” zoptymalizowaną pod Copilota?
+
+🔹 wersję „PR‑Review‑Only” zoptymalizowaną pod Copilota?
+Powiedz, którą generujemy dalej.
