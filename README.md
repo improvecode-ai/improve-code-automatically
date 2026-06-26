@@ -1,5 +1,5 @@
 # improve-code-automatically
-# Improve your code automatically with AI tools
+# Improve your code automatically with AI
 
 AI tools that help you to improve Java code quality — 
 safely, predictably, and without breaking anything.
