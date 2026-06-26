@@ -1,6 +1,6 @@
 # SonarQube Rules Excluded from AI Prompts
 
-This file documents the **84 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md`.
+This file documents the **113 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md`.
 
 Each rule was evaluated against three criteria:
 
@@ -114,13 +114,68 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 
 ---
 
+## 🟠 Re-audit (2026-06) — demoted from auto-fix
+
+A stricter safety re-audit removed these **29 rules** from `sonarqube-ai-fix-prompts-rules.md`.
+Each was tagged auto-fix `[A]`/`[F]`, but applying it without developer review can break code
+**silently** — it either renames a symbol that other files / serializers / reflection reference,
+or it changes runtime behavior. These are *not* flag-only candidates, because the act itself
+(a rename or a value change) is the unsafe part.
+
+**Group A — renames (cross-file / serialization / reflection scope):**
+
+| Rule | Category | Was | Why it is not 100% safe |
+|------|----------|-----|--------------------------|
+| **S100** | Naming | method name → camelCase | Renames a method — every caller (usually in other files) must change; breaks public API. Not single-file. |
+| **S101** | Naming | class/interface → CamelCase | Renames a type — breaks all references and the source file name. Whole-codebase scope. |
+| **S115** | Naming | constant → SCREAMING_SNAKE_CASE | Renames a constant — `public static final` is referenced cross-file; reflection / config lookups break. |
+| **S116** | Naming | field → camelCase | Renames a field — Jackson/JPA use the field name as the JSON property / DB column key, so serialization changes silently. No compile error. |
+| **S120** | Naming | package → lowercase | Renames a package — moves files and breaks every import across the codebase. |
+| **S1700** | Code Style | field duplicating class name → rename | Field rename — same serialization / reflection break as S116. |
+| **S2387** | Code Style | child field shadows parent → rename child field | Field rename, plus the de-shadowing changes which field is read at runtime. |
+
+**Group B — runtime behavior changes (AI cannot know if the original was intentional):**
+
+| Rule | Category | Was | Why it is not 100% safe |
+|------|----------|-----|--------------------------|
+| **S2447** | Null & Boolean | `Boolean` returns null → `Boolean.FALSE` | Changes the returned value; a caller branching on `== null` silently takes a different path. |
+| **S2789** | Null & Boolean | `return null` → `Optional.empty()` | A caller checking `== null` takes a different branch. |
+| **S2110** | Structure | invalid Date month `13 → 11` | Not mechanical — the "correct" month is a guess about intent. |
+| **S2695** | Structure | PreparedStatement index `0 → 1` | Changes which parameter is bound; with several `setX` calls the whole mapping can shift. |
+| **S1217** | Concurrency | `thread.run()` → `thread.start()` | Completely changes execution (current thread vs new thread). Also contradicts **S2134**, already excluded as intent-dependent — an internal inconsistency. |
+| **S2111** | String | `new BigDecimal(0.1)` → `("0.1")` | Different numeric value — can flip computed results and break tests. |
+| **S1317** | String | `new StringBuilder('x')` → `String.valueOf('x')` | Different object contents (capacity hint vs initial text). |
+| **S2692** | Code Style | `indexOf(x) > 0` → `!= -1` | Different result when the match is at index 0. |
+| **S5850** | String | regex `^a\|b$` → `^(a\|b)$` | Changes what the regex matches. |
+| **S5917** | String | DateTimeFormatter `Y` → `y` | Changes formatted/parsed dates near year boundaries. |
+| **S4524** | Code Style | `default` clause → last | Reordering changes fall-through semantics when cases fall into/out of `default`. |
+| **S6219** | Code Style / Serialization | serialVersionUID `0L → 1L` | Breaks deserialization of data serialized under the old UID. |
+| **S4347** | Security | `new Random()` → `new SecureRandom()` (universal) | `SecureRandom` reseeds non-deterministically and is far slower / can block; "apply universally" changes behavior and performance of non-security uses. |
+| **S1844** | Concurrency | `lock.wait()` → `condition.await()` | Different synchronization mechanism. |
+| **S2116** | Concurrency | `arr.hashCode()` → `Arrays.hashCode(arr)` | Identity hash → content hash; changes any map/set keyed on the array. |
+| **S2119** | Concurrency | `new Random()` per call → shared field | Changes the random sequence (shared state across calls). |
+| **S2122** | Concurrency | executor `0 → 1` core threads | Changes thread-pool execution. |
+| **S2204** | Concurrency | `atomicInt.equals(42)` → `get() == 42` | `equals` is always false → real comparison; different result. |
+| **S6915** | String | `indexOf("x", len)` → `indexOf("x")` | Searches from 0 instead of the end — a different result. |
+| **S2718** | String | `DateUtils.truncate` → `toLocalDate()` | Different time-zone semantics. |
+| **S1157** | String | `toUpperCase().equals(...)` → `equalsIgnoreCase` | Differs on null (NPE→false) and locale-specific case folding (e.g. Turkish i). |
+| **S1940** | Null & Boolean | `!a.equals(LIT)` → `!LIT.equals(a)` | Flips an NPE-on-null into a value — a caller relying on the NPE takes a different path. |
+
+> **Re-add path:** Group A — S100 / S101 / S115 / S120 could return as **Conditional** if the prompt
+> first performs a codebase-wide reference update alongside the rename; S116 / S1700 / S2387 only with
+> a "field is never serialized or accessed via reflection" pre-check. Group B has no safe re-add path
+> — every fix changes observable behavior, so it needs a human to confirm the original was a defect.
+
+---
+
 ## Summary
 
 | Section | Count | Action |
 |---------|-------|--------|
 | 🔴 Breaking | 4 | Never auto-apply — require manual review + codebase-wide search |
 | 🟡 Conditional | 7 | Apply only after the stated pre-check passes |
+| 🟠 Re-audit demotions | 29 | Removed from auto-fix — rename / behavior-change risk |
 | ⚪ Removed | 73 | Not auto-fixable — require human judgment or domain knowledge |
-| **Total excluded** | **84** | |
+| **Total excluded** | **113** | |
 
 *improvecode.ai*

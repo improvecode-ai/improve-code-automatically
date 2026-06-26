@@ -6,22 +6,12 @@
 
 ### NAMING
 
-*(S100, S101, S115, S116, S117, S119, S120)*
+*(S117, S119)*
 
-* Method names must be camelCase starting with lowercase
-Example: `GetOrder()` → `getOrder()` (S100)
-* Class/interface names must be CamelCase starting with uppercase
-Example: `orderService` → `OrderService` (S101)
-* Constants (static final) must be SCREAMING\_SNAKE\_CASE
-Example: `static final int maxSize = 100` → `static final int MAX\\\_SIZE = 100` (S115)
-* Field names must be camelCase
-Example: `private String UserName` → `private String userName` (S116)
 * Local variable and parameter names must be camelCase
 Example: `String UserName = ...` → `String userName = ...` (S117)
 * Type parameter names: single uppercase letter or end with T
 Example: `<type>` → `<T>`, `<orderType>` → `<OrderT>` (S119)
-* Package names must be lowercase, no uppercase, no underscores
-Example: `package com.Example.Order` → `package com.example.order` (S120)
 
 \---
 
@@ -41,7 +31,7 @@ Skip if annotated with: @Bean, @EventListener, @Scheduled, @PostConstruct (S1144
 
 ### NULL AND BOOLEAN
 
-*(S1125, S1126, S1155, S1940, S2447, S2583, S2589, S2789)*
+*(S1125, S1126, S1155, S2583, S2589)*
 
 **Auto-fix:**
 
@@ -51,24 +41,15 @@ Skip if annotated with: @Bean, @EventListener, @Scheduled, @PostConstruct (S1144
 `if (x) { return a; } else { b(); }` → `if (x) { return a; } b();` (S1126)
 * Use isEmpty() instead of size() comparisons
 `list.size() == 0` → `list.isEmpty()`, `list.size() > 0` → `!list.isEmpty()` (S1155)
-* Use positive condition instead of negated equals
-When left side could be null: flip to put the non-null value on the left
-`if (!status.equals("ACTIVE"))` → `if (!"ACTIVE".equals(status))`
-When both sides could be null: use Objects.equals
-`if (!a.equals(b))` → `if (!Objects.equals(a, b))` (S1940)
-* Boolean method must not return null → replace with Boolean.FALSE or Boolean.TRUE
-Example: `public Boolean isActive() { return null; }` → `public Boolean isActive() { return Boolean.FALSE; }` (S2447)
 **Flag only — adds TODO comment, does not auto-fix:**
 * Always-true or always-false conditions → add `// TODO: S2583 verify condition is intentional` — do NOT remove automatically (S2583)
 * Gratuitous boolean expressions → add `// TODO: S2589 verify this condition` — do NOT remove automatically (S2589)
-* null used with Optional → `Optional.empty()`
-`return null` → `return Optional.empty()` — ONLY when declared return type is `Optional<T>` (S2789)
 
 \---
 
 ### CODE STYLE
 
-*(S1110, S1121, S1124, S1132, S1192, S1195, S1197, S1219, S1264, S1444, S1596, S1700, S1764, S2147, S2154, S2183, S2387, S2692, S3252, S3599, S3973, S4165, S4425, S4454, S4524, S4719, S6219, S7158)*
+*(S1110, S1121, S1124, S1132, S1192, S1195, S1197, S1219, S1264, S1444, S1596, S1764, S2147, S2154, S2183, S3252, S3599, S3973, S4165, S4425, S4454, S4719, S7158)*
 
 **Auto-fix:**
 
@@ -97,8 +78,6 @@ Only when loop variable is not used in the update clause (S1264)
 `Collections.EMPTY\\\_LIST` → `Collections.emptyList()`
 `Collections.EMPTY\\\_MAP` → `Collections.emptyMap()`
 `Collections.EMPTY\\\_SET` → `Collections.emptySet()` (S1596)
-* Field name must not duplicate its class name → rename field to lowercase class name
-Example: class `Order` with field `Order` → rename field to `order` (S1700)
 **Flag only — adds TODO comment, does not auto-fix:**
 * Identical expressions on both sides of operator → flag
 `a == a`, `a \\\&\\\& a`, `a || a` → add `// TODO: S1764 identical expressions — verify intent` (S1764)
@@ -110,11 +89,6 @@ Skip if catch bodies differ even slightly (S2147)
 * Remove useless bit shifts (shift by 0 or by >= number of bits)
 `x << 0` → `x`
 `x << 32` on int → add `// TODO: S2183 shift by 32 always gives 0 for int — verify intent` (S2183)
-* Child field shadows parent field → rename child field, not parent
-Example: parent has `name`, child has `name` → rename child field to `childName`
-If `childName` is already taken, add `// TODO: S2387 child field shadows parent — rename to avoid confusion` (S2387)
-* indexOf result compared with > 0 → fix to != -1
-`str.indexOf("x") > 0` → `str.indexOf("x") != -1` (S2692)
 * Static member accessed via derived type → access via declaring class
 `Child.PARENT\\\_CONSTANT` → `Parent.PARENT\\\_CONSTANT` (S3252)
 * Remove Double Brace Initialization → replace with explicit add() calls
@@ -128,10 +102,8 @@ Skip if field is annotated with: @Column, @Id, @Transient (S4165)
 `Integer.toHexString(n)` → `String.format("%x", n)` (S4425)
 * Remove @Nonnull/@NonNull annotation from equals() parameter
 `equals(@Nonnull Object obj)` → `equals(Object obj)` (S4454)
-* default clause must be last in switch (S4524)
 * Replace string charset with StandardCharsets constant
 `"UTF-8"` → `StandardCharsets.UTF\\\_8`, `"ISO-8859-1"` → `StandardCharsets.ISO\\\_8859\\\_1` (S4719)
-* serialVersionUID must not be 0L in records → change to 1L (S6219)
 * String.length() == 0 → String.isEmpty()
 `str.length() == 0` → `str.isEmpty()`, `str.length() > 0` → `!str.isEmpty()` (S7158)
 
@@ -139,26 +111,14 @@ Skip if field is annotated with: @Column, @Id, @Transient (S4165)
 
 ### STRING
 
-*(S1153, S1157, S1317, S1858, S2112, S2111, S2200, S2629, S2639, S2718, S3039, S5361, S5850, S5917, S6915)*
+*(S1153, S1858, S2112, S2200, S2629, S2639, S3039, S5361)*
 
 * Remove String.valueOf() when appending to String
 `"prefix" + String.valueOf(x)` → `"prefix" + x` (S1153)
-* BigDecimal must not use double constructor — use String constructor
-`new BigDecimal(0.1)` → `new BigDecimal("0.1")` — double constructor loses precision (S2111)
-* DateTimeFormatter must not mix week-year Y with day-of-month or month
-`DateTimeFormatter.ofPattern("YYYY-MM-dd")` → `DateTimeFormatter.ofPattern("yyyy-MM-dd")`
-Replace Y (week-year) with y (year) when used with MM or dd (S5917)
 * Inappropriate regex pattern — flag known problematic patterns
 Add `// TODO: S2639 verify this regex is correct and handles edge cases` (S2639)
-* Regex alternatives with anchors must be grouped
-`^a|b$` is parsed as `(^a)|(b$)` not `^(a|b)$` →
-`^(a|b)$` — wrap alternatives in a group when used with ^ or $ (S5850)
 * String operation index must be within string bounds — flag
 Add `// TODO: S3039 verify this index is within string bounds` (S3039)
-* Case-insensitive comparison without equalsIgnoreCase → use equalsIgnoreCase
-`a.toUpperCase().equals(b.toUpperCase())` → `a.equalsIgnoreCase(b)` (S1157)
-* new StringBuilder(char) is wrong — char is treated as int capacity
-`new StringBuilder('x')` → `new StringBuilder(String.valueOf('x'))` (S1317)
 * toString() called on a String → remove the call
 `str.toString()` → `str` (S1858)
 * URL.hashCode/equals is broken for URLs → use URI instead
@@ -168,13 +128,9 @@ Add `// TODO: S3039 verify this index is within string bounds` (S3039)
 `a.compareTo(b) == -1` → `a.compareTo(b) < 0` (S2200)
 * Logging/Preconditions arguments must not require evaluation at call site
 `log.debug("Value: " + value)` → `log.debug("Value: {}", value)` (S2629)
-* DateUtils.truncate → modern Java time API
-`DateUtils.truncate(date, Calendar.DAY\\\_OF\\\_MONTH)` → `date.toLocalDate().atStartOfDay()` (S2718)
 * String.replace preferred over replaceAll when pattern has no regex metacharacters
 `str.replaceAll(".", "x")` → `str.replace(".", "x")`
 Only apply when the pattern string contains no regex metacharacters: . \* + ? ^ $ { } \[ ] | ( ) \\ (S5361)
-* String.indexOf with out-of-range fromIndex → fix bounds
-`str.indexOf("x", str.length())` → `str.indexOf("x")` (S6915)
 
 \---
 
@@ -347,27 +303,13 @@ Add `// TODO: S5413 use Iterator.remove() or iterate in reverse` (S5413)
 
   ### CONCURRENCY
 
-  \*(S1217, S1844, S2066, S2116, S2119, S2122, S2168, S2204, S2273, S2274, S2276, S2445, S2446, S3014, S3066, S3067, S3078, S5164, S6901)\*
+  \*(S2066, S2168, S2273, S2274, S2276, S2445, S2446, S3014, S3066, S3067, S3078, S5164, S6901)\*
 
   \*\*Auto-fix:\*\*
 
 \* Serializable inner class must be static → add `static` keyword (S2066)
-\* Thread.run() called directly — use Thread.start() instead
-`thread.run()` → `thread.start()` — run() executes in current thread, start() creates new thread (S1217)
-\* Object.wait() called on Condition — use await() instead
-`lock.wait()` → `condition.await()` — Condition uses await/signal not wait/notify (S1844)
-\* Atomic classes must not use .equals() for value comparison
-`atomicInt.equals(42)` → `atomicInt.get() == 42` (S2204)
 \* enum fields must not be publicly mutable — add final or reduce visibility
 `public Status status = ACTIVE` → `private final Status status` (S3066)
-\* hashCode() or toString() called on array → use Arrays utility
-`arr.hashCode()` → `Arrays.hashCode(arr)`
-`arr.toString()` → `Arrays.toString(arr)` (S2116)
-\* new Random() created on every call → extract to private final field
-`private final Random random = new Random();`
-If class is annotated @Component/@Service/@Singleton: add
-`// TODO: S2119 verify thread safety — consider ThreadLocalRandom.current() if used concurrently` (S2119)
-\* ScheduledThreadPoolExecutor with 0 core threads → change to 1 or more (S2122)
 \*\*Flag only — adds TODO comment, does not auto-fix:\*\*
 \* Double-checked locking without volatile → flag
 Add `// TODO: S2168 double-checked locking requires volatile field to be safe` (S2168)
@@ -421,7 +363,7 @@ Add `// TODO: S6901 these methods have no effect on virtual threads` (S6901)
 
   ### SERIALIZATION
 
-  \*(S2060, S2061, S2062, S2157, S2675, S2975, S6218, S6219)\*
+  \*(S2060, S2061, S2062, S2157, S2675, S2975, S6218)\*
 
   \*\*Auto-fix:\*\*
 
@@ -466,8 +408,6 @@ Example (Java 16+ pattern matching syntax — check Java version in pom.xml firs
   ```
 
   If Java < 16: use `if (!(o instanceof Point)) return false; Point p = (Point) o;` instead (S6218)
-
-* serialVersionUID must not be 0L in records → change to 1L (S6219)
 
   \---
 
@@ -593,16 +533,13 @@ Example: `assertThat(list).allSatisfy(item -> { assertThat(item).isNotNull(); })
 
   ### SECURITY (MECHANICAL)
 
-  \*(S2151, S2254, S4347, S4830, S5445, S5527, S5542, S5547, S6373, S6376, S2755)\*
+  \*(S2151, S2254, S4830, S5445, S5527, S5542, S5547, S6373, S6376, S2755)\*
 
   \*\*Auto-fix:\*\*
 
 \* runFinalizersOnExit() → remove the call entirely (S2151)
 \* HttpServletRequest.getRequestedSessionId() → replace with session ID from session object
 `request.getRequestedSessionId()` → `request.getSession().getId()` (S2254)
-\* new Random() → SecureRandom for all usages
-`new Random()` → `new SecureRandom()`
-Apply universally — safer to over-apply SecureRandom than to miss a security-sensitive usage (S4347)
 \* SSL certificate verification disabled → remove trust-all implementation
 Remove custom TrustManager that accepts all certs, remove setHostnameVerifier that returns true always (S4830)
 \* Insecure temporary file creation → Files.createTempFile()
@@ -648,7 +585,7 @@ factory.setProperty(XMLConstants.ACCESS\_EXTERNAL\_SCHEMA, "");
 
   ### STRUCTURE
 
-  \*(S1872, S2110, S2127, S2167, S2209, S2225, S2232, S2676, S2677, S2689, S2695, S2864, S3038, S3398, S3984, S4087, S4351, S4517, S4925, S6810, S6913)\*
+  \*(S1872, S2127, S2167, S2209, S2225, S2232, S2676, S2677, S2689, S2864, S3038, S3398, S3984, S4087, S4351, S4517, S4925, S6810, S6913)\*
 
   \*\*Auto-fix:\*\*
 
@@ -670,13 +607,9 @@ Add `// TODO: S2676 Math.abs(MIN\\\_VALUE) returns MIN\\\_VALUE — add bounds c
 `Math.clamp(value, max, min)` → `Math.clamp(value, min, max)` — swap if clearly inverted (S6913)
 \* read() and readLine() return values must not be ignored
 `stream.read()` as statement → `int bytesRead = stream.read()` and check value (S2677)
-\* PreparedStatement and ResultSet indices start at 1 not 0
-`ps.setString(0, value)` → `ps.setString(1, value)` (S2695)
 \* Class instances must not be compared by class name
 `obj.getClass().getName().equals("com.example.Foo")` →
 `obj instanceof com.example.Foo` or `obj.getClass() == com.example.Foo.class` (S1872)
-\* Invalid Date field values must not be used
-`new Date(2024, 13, 1)` (month 13) → `new Date(2024, 11, 1)` — months are 0-indexed (S2110)
 \* String operation index out of bounds — flag
 Add `// TODO: S3039 verify this index is within string bounds at runtime` (S3039)
 \* Abstract method that is redundant → remove

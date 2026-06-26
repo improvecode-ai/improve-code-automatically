@@ -2,13 +2,8 @@
 
 ### NAMING
 
-\[A] Method camelCase: `GetOrder()` → `getOrder()` (S100)
-\[A] Class/interface CamelCase: `orderService` → `OrderService` (S101)
-\[A] Constant SCREAMING\_SNAKE\_CASE: `static final int maxSize` → `MAX\\\_SIZE` (S115)
-\[A] Field camelCase: `private String UserName` → `userName` (S116)
 \[A] Local/param camelCase: `String UserName = ...` → `userName` (S117)
 \[A] Type param single uppercase or ends with T: `<type>` → `<T>` · `<orderType>` → `<OrderT>` (S119)
-\[A] Package lowercase no underscores: `com.Example.Order` → `com.example.order` (S120)
 
 \---
 
@@ -27,12 +22,8 @@
 \[A] Remove redundant booleans: `if (x == true)` → `if (x)` · `if (x == false)` → `if (!x)` · `return x == true` → `return x` (S1125)
 \[A] Remove else after jump: `if (x) { return a; } else { b(); }` → `if (x) { return a; } b();` (S1126)
 \[A] isEmpty() over size(): `list.size() == 0` → `list.isEmpty()` · `list.size() > 0` → `!list.isEmpty()` (S1155)
-\[A] Positive equals — nullable left: `!status.equals("ACTIVE")` → `!"ACTIVE".equals(status)` · both nullable: `!a.equals(b)` → `!Objects.equals(a, b)` (S1940)
-\[A] Boolean method returns null → `Boolean.FALSE` or `Boolean.TRUE` (S2447)
 \[F] Always-true/false condition → `// TODO: S2583 verify condition is intentional` — do NOT remove code (S2583)
 \[F] Gratuitous boolean → `// TODO: S2589 verify this condition` — do NOT remove code (S2589)
-\[F] `return null` in `Optional<T>` method → `return Optional.empty()` (S2789)
-
 \---
 
 ### CODE STYLE
@@ -47,21 +38,16 @@
 \[A] for→while when loop variable unused in update: `for (; cond;)` → `while (cond)` (S1264)
 \[A] public static field must be final — skip if assigned outside declaration (S1444)
 \[A] Deprecated collection constants: `Collections.EMPTY\\\_LIST` → `Collections.emptyList()` · `EMPTY\\\_MAP` → `emptyMap()` · `EMPTY\\\_SET` → `emptySet()` (S1596)
-\[A] Field name duplicates class name → rename to lowercase: class `Order` field `Order` → field `order` (S1700)
 \[A] Single-line if → add braces: `if (x) doIt();` → `if (x) { doIt(); }` (S3973)
 \[A] Remove redundant field assignments — skip if class @Entity/@MappedSuperclass/@Embeddable or field @Column/@Id/@Transient (S4165)
 \[A] `Integer.toHexString(n)` → `String.format("%x", n)` (S4425)
 \[A] Remove @Nonnull/@NonNull from equals() param: `equals(@Nonnull Object o)` → `equals(Object o)` (S4454)
-\[A] default clause must be last in switch (S4524)
 \[A] String charset → StandardCharsets: `"UTF-8"` → `StandardCharsets.UTF\\\_8` · `"ISO-8859-1"` → `StandardCharsets.ISO\\\_8859\\\_1` (S4719)
-\[A] serialVersionUID 0L in records → 1L (S6219)
 \[A] `str.length() == 0` → `str.isEmpty()` · `str.length() > 0` → `!str.isEmpty()` (S7158)
 \[F] Identical expressions both sides: `a == a` · `a \\\&\\\& a` → `// TODO: S1764 identical expressions — verify intent` (S1764)
 \[F] Identical catch bodies → merge: `catch(A e){} catch(B e){}` → `catch(A|B e){}` — skip if bodies differ even slightly (S2147)
 \[F] Dissimilar ternary types → explicit cast: `cond ? intVal : longVal` → `cond ? (long) intVal : longVal` (S2154)
 \[F] Useless shift: `x << 0` → `x`; `x << 32` on int → `// TODO: S2183 shift by 32 always 0 for int` (S2183)
-\[F] Child field shadows parent → rename child field (not parent); if name taken → `// TODO: S2387 child field shadows parent — rename` (S2387)
-\[F] `str.indexOf("x") > 0` → `str.indexOf("x") != -1` (S2692)
 \[F] Static via derived type → declaring class: `Child.PARENT\\\_CONSTANT` → `Parent.PARENT\\\_CONSTANT` (S3252)
 \[F] Double brace init → explicit add(): `new ArrayList<>(){{ add("a"); }}` → explicit `list.add("a")` calls (S3599)
 
@@ -70,20 +56,13 @@
 ### STRING
 
 \[A] Remove String.valueOf() in concat: `"x" + String.valueOf(n)` → `"x" + n` (S1153)
-\[A] Case-insensitive compare: `a.toUpperCase().equals(b.toUpperCase())` → `a.equalsIgnoreCase(b)` (S1157)
-\[A] `new StringBuilder('x')` (char treated as int capacity) → `new StringBuilder(String.valueOf('x'))` (S1317)
 \[A] `str.toString()` on String → `str` (S1858)
-\[A] `new BigDecimal(0.1)` (loses precision) → `new BigDecimal("0.1")` (S2111)
 \[F] `new URL(s).equals(o)` → `// TODO: S2112 URL.equals broken — replace with URI` (S2112)
 \[A] compareTo vs literal: `a.compareTo(b) == -1` → `a.compareTo(b) < 0` (S2200)
 \[A] Log string concat → parameterized: `log.debug("v: " + x)` → `log.debug("v: {}", x)` (S2629)
 \[F] Suspicious regex → `// TODO: S2639 verify regex handles edge cases` (S2639)
-\[A] DateUtils.truncate → `date.toLocalDate().atStartOfDay()` (S2718)
 \[F] String index may be OOB → `// TODO: S3039 verify index within string bounds` (S3039)
 \[A] replaceAll with no regex metacharacters → replace: `str.replaceAll("x", "y")` → `str.replace("x", "y")` — metacharacters are: `. \\\* + ? ^ $ { } \\\[ ] | ( ) \\\\` (S5361)
-\[F] Regex anchor ambiguity: `^a|b$` is parsed as `(^a)|(b$)` — fix to `^(a|b)$` (S5850)
-\[A] DateTimeFormatter week-year Y → calendar year y: `"YYYY-MM-dd"` → `"yyyy-MM-dd"` (S5917)
-\[A] `str.indexOf("x", str.length())` → `str.indexOf("x")` (S6915)
 
 \---
 
@@ -146,13 +125,7 @@
 
 ### CONCURRENCY
 
-\[A] `thread.run()` → `thread.start()` (run() executes in current thread; start() creates new thread) (S1217)
-\[A] `lock.wait()` on Condition object → `condition.await()` (S1844)
 \[A] Serializable non-static inner class → add `static` keyword (S2066)
-\[A] `arr.hashCode()` → `Arrays.hashCode(arr)` · `arr.toString()` → `Arrays.toString(arr)` (S2116)
-\[A] `new Random()` inside method → extract to `private final Random random = new Random()` field — if @Component/@Service/@Singleton add `// TODO: S2119 consider ThreadLocalRandom.current() for concurrency` (S2119)
-\[A] ScheduledThreadPoolExecutor with 0 core threads → change to 1 or more (S2122)
-\[A] `atomicInt.equals(42)` → `atomicInt.get() == 42` (S2204)
 \[A] enum public mutable field → `private final`: `public Status status = ACTIVE` → `private final Status status` (S3066)
 \[F] Double-checked locking without volatile → `// TODO: S2168 double-checked locking requires volatile field` (S2168)
 \[F] wait()/notify()/notifyAll() outside synchronized → wrap: `synchronized(obj) { obj.wait(); }` (S2273)
@@ -179,8 +152,6 @@
 \[A] Remove `synchronized` keyword from readObject() (S2675)
 \[F] clone() overridden → `// TODO: S2975 clone() broken by design — use copy constructor` (S2975)
 \[F] Record with array fields → override equals() using Arrays.equals() for array fields + Objects.equals() for others; override hashCode() using Arrays.hashCode() for array fields (Java 16+: `instanceof Point p` pattern; Java < 16: cast manually) (S6218)
-\[F] serialVersionUID 0L in records → 1L (S6219)
-
 \---
 
 ### ANNOTATIONS AND BOILERPLATE
@@ -237,7 +208,6 @@
 
 \[A] Remove `runFinalizersOnExit()` call (S2151)
 \[A] `request.getRequestedSessionId()` → `request.getSession().getId()` (S2254)
-\[A] `new Random()` → `new SecureRandom()` — apply universally (S4347)
 \[A] Remove trust-all TrustManager (accepts all certs) and HostnameVerifier always returning true (S4830)
 \[A] `File.createTempFile(...)` → `Files.createTempFile(...)` (S5445)
 \[A] Remove `HttpsURLConnection.setDefaultHostnameVerifier(...)` that bypasses hostname verification (S5527)
@@ -259,9 +229,7 @@
 \[F] `Math.abs(MIN\\\_VALUE)` → `// TODO: S2676 Math.abs(MIN\\\_VALUE) returns MIN\\\_VALUE — add bounds check` (S2676)
 \[A] Math.clamp() args clearly inverted: `Math.clamp(val, max, min)` → `Math.clamp(val, min, max)` (S6913)
 \[A] `stream.read()` result ignored → assign to variable and check: `int n = stream.read();` (S2677)
-\[A] PreparedStatement/ResultSet index 0 → 1: `ps.setString(0, v)` → `ps.setString(1, v)` (S2695)
 \[A] `obj.getClass().getName().equals("com.Foo")` → `obj instanceof com.Foo` or `obj.getClass() == com.Foo.class` (S1872)
-\[A] Invalid Date month (0-indexed): `new Date(2024, 13, 1)` month 13 → `new Date(2024, 11, 1)` (S2110)
 \[F] String operation index may be OOB → `// TODO: S3039 verify index within string bounds` (S3039)
 \[A] Interface method already declared in parent interface → remove redundant declaration (S3038)
 \[A] Explicit resource.close() inside try-with-resources → remove (closed automatically) (S4087)
