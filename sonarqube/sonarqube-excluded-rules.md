@@ -1,6 +1,6 @@
 # SonarQube Rules Excluded from AI Prompts
 
-This file documents the **184 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **94** fully-automatic, safe auto-fix rules in the prompts.
+This file documents the **202 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **76** fully-automatic, safe auto-fix rules in the prompts.
 
 A rule is excluded when its fix is not mechanical, cannot be applied safely without risking compile errors or runtime breakage, needs more than a single file to apply correctly, or can only be flagged for a human rather than fixed automatically. Excluded rules are grouped below by priority: **Breaking** (most dangerous) → **Conditional** → **Re-audit** → **Flag-only / review-needed** → **Removed** (the rest). Each rule appears in exactly one section.
 
@@ -129,6 +129,36 @@ These **71 rules** were dropped so the prompts apply *only* safe, hands-off fixe
 
 ---
 
+## 🟣 Safety re-audit (2026-06) — silent behavior change or guessing intent
+
+A second, stricter per-rule re-audit removed these **18 rules** from `sonarqube-ai-fix-prompts-rules.md`.
+Each *could* be auto-edited and the code still compiles — but the result either **changes runtime
+behavior silently** (no compile error to catch it) or forces the AI to **guess** a value or intent.
+That fails the "100% automatic, no human" bar, so they now require developer review.
+
+| Rule | Category | Why it is not 100% safe |
+|------|----------|--------------------------|
+| **S1068** | Dead Code | Removing an unused private *field* fails silently when it is read only via reflection (Jackson/JPA without annotations, Spring SpEL, etc.) — the annotation skip-list cannot cover every case |
+| **S1144** | Dead Code | Removing an unused private *method* fails silently when it is invoked only via reflection (JUnit, DI by name, serialization callbacks) — no compile error catches it |
+| **S1132** | Code Style | `var.equals("L")` → `"L".equals(var)` silently turns an NPE (when `var` is null) into `false` — a caller relying on the throw takes a different branch |
+| **S1153** | String | Removing `String.valueOf()` is wrong for `char[]`: `"" + String.valueOf(chars)` (the characters) vs `"" + chars` (array identity hash) — silent output change |
+| **S5361** | String | `replaceAll`→`replace` checks only the *pattern*; the **replacement** string treats `$` and `\` specially in `replaceAll`, so `$1`/`\` silently change the result |
+| **S1206** | Annotations | Generating `hashCode()` guesses which fields `equals()` uses and changes the hash of every existing `HashMap`/`HashSet` entry |
+| **S2254** | Security | `getRequestedSessionId()` → `getSession().getId()` has a side effect (creates a session) and returns a different value |
+| **S4830** | Security | Removing a trust-all `TrustManager`/`HostnameVerifier` breaks every connection that relied on it — functional change, not mechanical |
+| **S5527** | Security | Removing the hostname-verifier bypass breaks connections that depended on it — same as S4830 |
+| **S2755** | Security | Adding XXE `disallow-doctype-decl` can throw on parsers that don't support it and breaks legitimate DOCTYPE usage |
+| **S6373** | Security | Adding `FEATURE_SECURE_PROCESSING` can change parser behavior or throw on unsupported parsers |
+| **S6376** | Security | Setting `ACCESS_EXTERNAL_DTD`/`ACCESS_EXTERNAL_SCHEMA` to `""` breaks apps that legitimately load external DTDs/schemas |
+| **S6913** | Structure | `Math.clamp` arg swap requires guessing which argument is min vs max |
+| **S3984** | Structure | Adding `throw` to a bare `new Exception(...)` guesses intent and changes control flow |
+| **S2677** | Structure | "Assign and check" the `read()` result is undefined — the AI invents the checking logic |
+| **S1872** | Structure | `getClass().getName().equals(...)` → `instanceof` changes semantics (`instanceof` matches subclasses; the name/`==` form is exact-type) |
+| **S2225** | Structure | Replacing a null return from `toString()`/`clone()` silently changes the returned value |
+| **S6831** | Spring | Removing `@Qualifier` on a `@Bean` is safe only if its value equals the method name; otherwise it silently rewires which bean is selected |
+
+---
+
 ## ⚪ Removed — excluded entirely (require human judgment or domain knowledge)
 
 These rules are not auto-fixable. They require understanding intent, security context, architecture, or data flow that AI cannot safely infer from a single file. Grouped by reason below.
@@ -212,7 +242,8 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 | 🟡 Conditional | 7 | Apply only after the stated pre-check passes |
 | 🟠 Re-audit demotions | 29 | Removed from auto-fix — rename / behavior-change risk |
 | 🔵 Flag-only / review-needed | 71 | Dropped so prompts stay fully automatic — flag-only (54) or needs developer review (17) |
+| 🟣 Safety re-audit (2026-06) | 18 | Silent behavior change, reflection risk, or guessing intent — needs developer review |
 | ⚪ Removed | 73 | Not auto-fixable — require human judgment or domain knowledge |
-| **Total excluded** | **184** | |
+| **Total excluded** | **202** | |
 
 *improvecode.ai*

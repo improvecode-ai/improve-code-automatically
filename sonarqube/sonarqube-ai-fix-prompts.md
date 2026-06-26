@@ -20,7 +20,7 @@ Review git diff before committing
 ```
 Step 1 — read project config once (do not modify):
   Read pom.xml or build.gradle. Note:
-  - Java version (S6204 requires Java 16+, S6218 pattern matching requires Java 16+)
+  - Java version (some modernization fixes need a recent language level)
   - Lombok present? (needed for boilerplate rules)
   - Dominant logger (SLF4J / Log4j / java.util.logging)
 
@@ -141,7 +141,7 @@ Print: list of fixed issues and any skipped with reason.
 
 ## 📖 RULES REFERENCE
 
-All prompts above reference a **RULES REFERENCE** — the full list of 94 categorised SonarQube rules, every one a safe, fully-automatic auto-fix.
+All prompts above reference a **RULES REFERENCE** — the full list of 76 categorised SonarQube rules, every one a safe, fully-automatic auto-fix.
 
 The rules live in a separate file:
 

@@ -1,6 +1,6 @@
 # RULES REFERENCE
 
-*94 safe, mechanical auto-fix rules. Every rule is applied automatically — no human intervention — and never changes public API, business logic, or compilation. Rules that could only add a `// TODO` flag, or whose fix could change runtime behavior or require guessing intent, were moved to `sonarqube-excluded-rules.md`.*
+*76 safe, mechanical auto-fix rules. Every rule is applied automatically — no human intervention — and never changes public API, business logic, or compilation. Rules that could only add a `// TODO` flag, or whose fix could change runtime behavior or require guessing intent, were moved to `sonarqube-excluded-rules.md`.*
 
 ---
 
@@ -13,9 +13,7 @@
 
 ## DEAD CODE
 
-- Remove unused private fields — skip if `@Autowired`/`@Inject`/`@Value`/`@Column` (S1068)
 - Remove unused imports (S1128)
-- Remove unused private methods — skip if `@Bean`/`@EventListener`/`@Scheduled`/`@PostConstruct` (S1144)
 - Remove unused parameters — ONLY in private methods (S1172)
 - Remove unused local variables (S1481)
 
@@ -34,7 +32,6 @@
 - Remove redundant parens: `return (x + y)` → `return x + y` — keep if clarifying precedence: `(a + b) * c` (S1110)
 - Extract assignment from condition: `if ((x = compute()) != null)` → `x = compute(); if (x != null)` (S1121)
 - Canonical modifier order public/protected/private → abstract → static → final: `final static public int X` → `public static final int X` (S1124)
-- String literal left of equals: `var.equals("LIT")` → `"LIT".equals(var)` — skip if `@NotNull` (S1132)
 - 3+ duplicate string literals → `private static final String CONSTANT_NAME = "value"` (SCREAMING_SNAKE_CASE) (S1192)
 - Array type on type not variable: `int a[]` → `int[] a` · `String m()[]` → `String[] m()` (S1195, S1197)
 - Remove non-case labels from switch (S1219)
@@ -56,11 +53,9 @@
 
 ## STRING
 
-- Remove String.valueOf() in concat: `"x" + String.valueOf(n)` → `"x" + n` (S1153)
 - `str.toString()` on String → `str` (S1858)
 - compareTo vs literal: `a.compareTo(b) == -1` → `a.compareTo(b) < 0` (S2200)
 - Log string concat → parameterized: `log.debug("v: " + x)` → `log.debug("v: {}", x)` (S2629)
-- replaceAll with no regex metacharacters → replace: `str.replaceAll("x", "y")` → `str.replace("x", "y")` — metacharacters are: `. * + ? ^ $ { } [ ] | ( ) \` (S5361)
 
 ---
 
@@ -116,7 +111,6 @@
 
 - Add missing @Override on methods overriding or implementing (S1161)
 - `public void finalize()` → `protected void finalize()` (S1174)
-- equals() overridden without hashCode() → add: `@Override public int hashCode() { return Objects.hash(sameFieldsUsedInEquals); }` (S1206)
 - Unwrap @Repeatable container: `@Xs({@X("a"), @X("b")})` → `@X("a") @X("b")` — only when annotation is declared @Repeatable (S1710)
 - Child method matches parent signature but missing @Override → add @Override (S2177)
 - Remove `@Nonnull`/`@NonNull` from equals() parameter (S4454)
@@ -128,7 +122,6 @@
 
 - @RequestMapping method is private → change to public or package-private (S3751)
 - Single constructor annotated @Autowired → remove @Autowired (Spring injects single constructor automatically) (S6818)
-- @Qualifier on @Bean method → remove (@Bean method name is already the qualifier) (S6831)
 - @Controller where every declared method has @ResponseBody → replace @Controller with @RestController and remove @ResponseBody from all methods — skip if even one declared method lacks @ResponseBody (S6833)
 - Path variable in mapping without @PathVariable: `@GetMapping("/x/{id}") Order get(Long id)` → `Order get(@PathVariable Long id)` — verify param name matches template (S6856)
 
@@ -149,26 +142,15 @@
 ## SECURITY (MECHANICAL)
 
 - Remove `runFinalizersOnExit()` call (S2151)
-- `request.getRequestedSessionId()` → `request.getSession().getId()` (S2254)
-- Remove trust-all TrustManager (accepts all certs) and HostnameVerifier always returning true (S4830)
-- `File.createTempFile(...)` → `Files.createTempFile(...)` (S5445)
-- Remove `HttpsURLConnection.setDefaultHostnameVerifier(...)` that bypasses hostname verification (S5527)
-- XML parser missing XXE protection → add `factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)` (S2755)
-- XML parser missing secure processing → add `factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)` (S6373)
-- XML parser missing DoS limits → add `factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "")` and `factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")` (S6376)
+- `File.createTempFile(...)` → `Files.createTempFile(...)` — adjust call site if it expects a `File` (S5445)
 
 ---
 
 ## STRUCTURE
 
-- Exception created as statement not thrown → add `throw`: `new IllegalArgumentException("msg")` → `throw new IllegalArgumentException("msg")` (S3984)
 - compareTo() returns Integer.MIN_VALUE → return -1 (MIN_VALUE negated is still MIN_VALUE, breaks contract) (S2167)
 - compareTo() overloaded with non-Object param → remove the overload (S4351)
 - `Double.longBitsToDouble(intVal)` → `Double.longBitsToDouble((long) intVal)` (S2127)
-- toString()/clone() returns null → toString(): `return ""` · clone(): `return super.clone()` wrapped in try-catch AssertionError (S2225)
-- Math.clamp() args clearly inverted: `Math.clamp(val, max, min)` → `Math.clamp(val, min, max)` (S6913)
-- `stream.read()` result ignored → assign to variable and check: `int n = stream.read();` (S2677)
-- `obj.getClass().getName().equals("com.Foo")` → `obj instanceof com.Foo` or `obj.getClass() == com.Foo.class` (S1872)
 - Interface method already declared in parent interface → remove redundant declaration (S3038)
 - Explicit resource.close() inside try-with-resources → remove (closed automatically) (S4087)
 - `return buf[pos]` in InputStream.read() → `return buf[pos] & 0xFF` (signed byte fix) (S4517)
