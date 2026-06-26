@@ -86,7 +86,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Find all logic clarity issues:
    - if (x) return true; else return false; patterns
-   - if (x == true) or if (x == false) comparisons
+   - if (x == true) / if (x == false) / if (x != true) comparisons
    - Double negations: if (!isNotActive)
    - Complex inline conditions (2+ operators) not extracted to named booleans
 3. Output as table: File | Line | Pattern | Before | After | Rule
@@ -153,7 +153,8 @@ For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Apply:
    - Remove all unused imports
-   - Remove all System.out.println lines (delete entirely)
+   - Remove all System.out.println lines (delete entirely — treated as leftover debug;
+     if some are intentional application output, use AGGRESSIVE mode, which converts instead)
    - Extract numeric literals (except 0, 1, -1) to private static final constants at top of class
      Name them based on usage context
    - Extract string literals that appear 3+ times to private static final String constants
@@ -174,8 +175,10 @@ For each .java file in [PACKAGE_PATH], one at a time:
 2. Apply all SAFE changes, plus:
    - Remove unused private methods and fields that have no framework annotations
      (@Autowired, @Bean, @EventListener, @Scheduled etc.) — skip if annotated
-   - Replace System.out that appears to be application output (not debug) with:
-     log.info(...) using the existing logger, or add SLF4J logger if missing
+   - System.out handling SUPERSEDES the SAFE blanket-delete: instead of deleting every
+     System.out, classify each one — clearly debug/throwaway → delete;
+     appears to be real application output → convert to log.info(...) using the existing
+     logger, or add an SLF4J logger if none exists
    - Reorder class members: static fields → instance fields → constructors →
      public methods → package-private methods → private methods → inner classes
    - If a private method is called exactly once and its body is under 3 lines, inline it
@@ -188,6 +191,11 @@ For each .java file in [PACKAGE_PATH], one at a time:
 
 ## 🔒 4. NULL SAFETY
 **Strategy: file-by-file** — annotation decisions are based on local usage within one file
+
+> **Annotation library:** use JetBrains `org.jetbrains.annotations.@NotNull` / `@Nullable`.
+> These are **documentation / IDE-and-static-analysis contracts ONLY — they are NOT enforced at
+> runtime**: no null check is generated and nothing is thrown. SAFE mode therefore changes zero
+> runtime behavior. Runtime enforcement is added only in AGGRESSIVE mode, via `Objects.requireNonNull`.
 
 ### EDUCATIONAL
 ```
@@ -211,13 +219,16 @@ For each .java file in [PACKAGE_PATH], one at a time:
    - Add @Nullable to parameters that have an explicit null check (if param == null)
    - Add @NotNull to return type if the method has no "return null" statements
    - Add @Nullable to return type if the method has at least one "return null" statement
-   - Replace "return null" → return List.of() / Collections.emptyList() / Set.of()
-     ONLY for methods whose declared return type is List, Set, or Collection
+   - Replace "return null" → return List.of() / Set.of() / Map.of() /
+     Collections.emptyList() / emptySet() / emptyMap()
+     ONLY for methods whose declared return type is List, Set, Map, or Collection
 3. Print: "FileName.java — added X @NotNull, Y @Nullable, replaced Z null returns"
 4. Save. Move to next file.
 
 Hard rules:
-- Use jakarta.annotation for @NotNull/@Nullable (fall back to javax.annotation if jakarta absent)
+- Use JetBrains org.jetbrains.annotations.@NotNull / @Nullable
+- These annotations are NOT runtime-enforced — they are documentation / IDE / static-analysis
+  contracts only. SAFE mode changes zero runtime behavior.
 - Do NOT add Objects.requireNonNull calls (annotation only in SAFE mode)
 - Do NOT change Optional return types
 ```
@@ -226,7 +237,8 @@ Hard rules:
 ```
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
-2. Apply all SAFE null safety changes, plus:
+2. Apply all SAFE null safety changes, plus (this is the ONLY mode that adds runtime enforcement
+   for the JetBrains @NotNull contracts that SAFE left documentation-only):
    - Add Objects.requireNonNull(param, "param must not be null") at the top of each
      public method for every @NotNull parameter that lacks an existing null check
    - Replace: x != null ? x : defaultValue → Objects.requireNonNullElse(x, defaultValue)
@@ -291,6 +303,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 
 ## 🧹 6. FORMATTING AND STYLE
 **Strategy: scan-then-fix** — logger consistency requires seeing all files before fixing
+(the cross-file scan is what EDUCATIONAL and AGGRESSIVE need; SAFE is per-file only — see below)
 
 ### EDUCATIONAL
 ```
@@ -309,9 +322,8 @@ Do NOT modify anything.
 
 ### SAFE
 ```
-Step 1 — scan all .java files in [PACKAGE_PATH] and note which logger style is dominant.
-
-Step 2 — for each file, one at a time:
+Process each .java file one at a time (no cross-file scan needed in SAFE — import order and
+blank-line grouping are per-file; logger unification is AGGRESSIVE-only):
 1. Read the file
 2. Apply:
    - Sort imports: static imports first, then java.*, javax.*, org.*, com.*, then project packages
@@ -321,29 +333,28 @@ Step 2 — for each file, one at a time:
      (2) business logic
      (3) return statement
      — add blank lines only, never remove existing ones
-   - If dominant logger is SLF4J and this file uses System.out: add SLF4J logger declaration,
-     replace System.out.println with log.info/log.debug/log.warn as appropriate
-3. Print: "FileName.java — sorted imports, added X blank lines, unified logger: yes/no"
+3. Print: "FileName.java — sorted imports, added X blank lines"
 4. Save. Move to next file.
 
 Hard rules:
 - Do NOT reformat indentation
 - Do NOT change line lengths
-- Do NOT change logger variable name if one already exists
+- Do NOT touch System.out or loggers in SAFE (System.out is owned by the Code Structure category;
+  logger unification is AGGRESSIVE-only)
 ```
 
 ### AGGRESSIVE
 ```
 Step 1 — scan all .java files in [PACKAGE_PATH]:
   - Determine dominant logger (most files use which framework)
-  - Find all inconsistencies: size()==0 vs isEmpty(), logger styles, import styles
+  - Find all inconsistencies: logger styles, import styles
 
 Step 2 — for each file, one at a time:
 1. Read the file
 2. Apply all SAFE formatting changes, plus:
    - Unify ALL loggers to SLF4J regardless of what is used:
      private static final Logger log = LoggerFactory.getLogger(ClassName.class);
-   - Within each class: if isEmpty() is used anywhere, replace all size()==0 and size()>0
+     (size()==0 / size()>0 → isEmpty() is owned by the Loops & Collections category — not repeated here)
    - Remove trailing whitespace
    - Normalize blank lines: max 1 consecutive blank line inside a method body,
      max 2 between method declarations
@@ -353,7 +364,7 @@ Step 2 — for each file, one at a time:
 
 ---
 
-## 🧪 7. EXCEPTIONS
+## ⚠️ 7. EXCEPTIONS
 **Strategy: file-by-file** — exception handling decisions are local to one file
 
 ### EDUCATIONAL
@@ -469,7 +480,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 2. Find:
    - Indexed for loops where the index is only used for list.get(i) (for-each candidate)
    - size() == 0 or size() > 0 comparisons (isEmpty() candidate)
-   - Collections.sort(list) calls (list.sort() candidate)
+   - Collections.sort(list) calls (list.sort(null) / list.sort(comparator) candidate)
    - Missing diamond operator: new ArrayList<String>() (new ArrayList<>() candidate)
    - Raw types: List, Map, Set without generic type parameter
 3. Output as table: File | Line | Pattern | Before | After
@@ -517,7 +528,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 
 ---
 
-## 🔥 10. COMMENTS
+## 💬 10. COMMENTS
 **Strategy: file-by-file** — comment quality is a purely local decision
 
 ### EDUCATIONAL
@@ -660,41 +671,53 @@ Top 3 by issue count: [category: N], [category: N], [category: N]"
 
 ### SAFE (full refactor, file-by-file)
 ```
-Apply all SAFE refactoring to [PACKAGE_PATH].
+Apply all SAFE refactoring to [PACKAGE_PATH]. This is a true superset of every category's
+SAFE prompt — every SAFE operation below is included.
 
-Step 1 — read pom.xml or build.gradle once:
-  - Note Java version (for Java 10+ features)
-  - Note if Lombok is present
-  - Note dominant logger framework
+SAFE needs no build-file context (it uses no Java-10+ feature, no Lombok, and no logger
+unification). For null-safety annotations use JetBrains org.jetbrains.annotations.@NotNull /
+@Nullable — documentation / IDE / static-analysis contracts only, NOT runtime-enforced.
 
-Step 2 — process files one at a time in this order of operations per file:
+Process files one at a time, in this order of operations per file:
   1. Remove unused imports
   2. Sort imports (static → java → javax → org → com → project)
-  3. Add @Override to eligible methods
-  4. Fix isEmpty() patterns (size()==0, size()>0)
-  5. Add diamond operator where missing
-  6. Fix for-each where index is unused
-  7. Simplify boolean returns (if x return true; else return false; → return x;)
-  8. Fix x==true / x==false patterns
-  9. Add final to local variables and parameters
-  10. Add @NotNull/@Nullable based on local usage
-  11. Replace null collection returns with List.of() / Collections.emptyList()
-  12. Extract magic numbers to named constants
-  13. Remove System.out.println
-  14. Fix empty catch blocks (add log.warn)
-  15. Remove what-comments and commented-out code
-  16. Fix assertEquals(true/false/null) in test files
+  3. Add blank-line grouping inside methods (validation / logic / return) — add only, never remove
+  4. Add @Override to eligible methods
+  5. Fix isEmpty() patterns (size()==0 → isEmpty(), size()>0 → !isEmpty())
+  6. Add diamond operator where missing
+  7. Replace Collections.sort(list) → list.sort(null); Collections.sort(list, c) → list.sort(c)
+  8. Fix for-each where the index is unused
+  9. Simplify boolean returns (if x return true; else return false; → return x;)
+  10. Fix x==true / x==false / x!=true patterns
+  11. Simplify double negation (if (!isNotActive) → if (isActive)) — only if isActive exists in scope
+  12. Add final to local variables and parameters
+  13. Rename for clarity — local variables, parameters, and PRIVATE fields ONLY:
+      expand abbreviations, boolean → question form, remove redundant class prefix,
+      constants → SCREAMING_SNAKE_CASE
+  14. Add @NotNull/@Nullable (JetBrains, not runtime-enforced) based on local usage
+  15. Replace null collection returns with List.of() / Set.of() / Map.of() / Collections.empty*
+      — for List / Set / Map / Collection return types only
+  16. Extract magic numbers to named constants
+  17. Extract string literals appearing 3+ times to named constants
+  18. Convert lambdas to method references (single-method-call bodies)
+  19. Remove System.out.println (delete — leftover debug)
+  20. Fix empty catch blocks (add log.warn; add an SLF4J logger if none exists)
+  21. Remove unnecessary casts (declared type already matches the cast target)
+  22. Remove what-comments and commented-out code
+  23. Fix assertEquals(true/false/null) in test files
 
-Step 3 — after all files:
+After all files:
   Print summary table:
   | Category | Files changed | Changes applied |
 
 Hard rules:
-- Do NOT touch public API signatures
-- Do NOT touch class fields
+- Do NOT touch public API signatures (public/protected methods, fields, interfaces)
+- Do NOT add final to fields, change field types, or add/remove fields
+  (private-field renames from step 13 are allowed — they are private)
 - Do NOT add Lombok
 - Do NOT convert loops to streams
 - Do NOT narrow catch(Exception)
+- @NotNull/@Nullable are NOT runtime-enforced (no Objects.requireNonNull in SAFE)
 ```
 
 ### AGGRESSIVE (full refactor, scan-then-fix)
@@ -704,16 +727,27 @@ Apply aggressive but safe refactoring to [PACKAGE_PATH].
 Step 1 — read once (do not modify yet):
   - pom.xml or build.gradle: Java version, Lombok presence, AssertJ presence
   - Scan all .java files: note dominant logger, find cross-file inconsistencies
+    (dominant logger is a source-usage metric — determine it by scanning files, not from pom.xml)
 
-Step 2 — process files one at a time:
-  Apply all SAFE mega prompt operations, plus:
-  - Rename abbreviations in local vars, parameters, private fields and methods
+Step 2 — process files one at a time.
+  Apply all SAFE mega prompt operations, plus every AGGRESSIVE operation from the individual
+  categories above. Key cross-cutting ones:
+  - Rename private methods by inferring intent (check() → isValid()) and de-abbreviate them —
+    beyond the local/param/private-field renames already done in SAFE
   - Extract complex boolean conditions (2+ operators) to named variables
-  - Convert eligible lambdas to method references
-  - Reorder class members (fields → constructors → public → private)
-  - Unify all loggers to SLF4J
+  - Convert nested ifs (3+ deep) to guard clauses where safe
+  - Reorder class members (static fields → instance fields → constructors → public → private)
+  - Remove unused private methods/fields with no framework annotations; inline 1-call <3-line private methods
+  - Unify ALL loggers to SLF4J; classify System.out (debug → delete, application output → log.info)
   - Add Objects.requireNonNull for @NotNull parameters in public methods
-  - Add final to private fields not touched by frameworks
+    (this is the runtime-enforcement layer for the JetBrains @NotNull contracts that SAFE
+     left documentation-only)
+  - Add final to private fields not touched by frameworks; final to non-extended,
+    non-Spring-proxied classes
+  - Add generics to raw types where unambiguous; convert filter/map/count loops (no side effects)
+    to Stream; List.copyOf for defensive-copy unmodifiable wrappers (Java 10+)
+  - Generate an all-fields constructor where missing; if Lombok is present, replace hand-written
+    getters/setters with @Getter/@Setter at field level
   - Modernize test assertions (AssertJ if available, otherwise JUnit semantic forms)
   - Add context to empty TODO/FIXME comments
 
@@ -726,6 +760,7 @@ Step 3 — final output:
 Hard rules:
 - Do NOT change public method signatures
 - Do NOT add @Builder or @EqualsAndHashCode
+- Do NOT add Lombok if it is not already in pom.xml / build.gradle
 - Do NOT convert loops with side effects to streams
 - Do NOT convert finally blocks to try-with-resources
 - Do NOT narrow catch(Exception) unless all thrown types are visible in the same file
