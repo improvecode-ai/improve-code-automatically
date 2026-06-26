@@ -44,7 +44,6 @@ Step 2 — for each .java file in \[FILE\_OR\_PATH], one at a time:
   14. SECURITY (MECHANICAL)
   15. STRUCTURE
 
-  Within each category: apply AUTO-FIX rules first, then FLAG-ONLY rules.
   After all categories: re-run DEAD CODE to catch any new unused imports created by earlier fixes.
 
 Hard rules:
@@ -67,8 +66,7 @@ Step 1 — read project config once (do not modify):
 
 Step 2 — for each .java file in \[FILE\_OR\_PATH], one at a time:
   Read → apply all rules from the \[CATEGORY NAME] section of the RULES REFERENCE → save → next file
-  Within the category: apply AUTO-FIX rules first, then FLAG-ONLY rules.
-  Print per file: "FileName.java — X fixes applied, Y flagged"
+  Print per file: "FileName.java — X fixes applied"
 ```
 
 Replace `\[CATEGORY NAME]` with one of:  
@@ -103,7 +101,6 @@ Step 3 — for each changed file, one at a time:
   Apply all rules from the RULES REFERENCE ONLY to lines marked with + in the diff.
   Do NOT touch unchanged surrounding lines.
   Apply categories in the same order as FIX ALL (DEAD CODE first, STRUCTURE last).
-  Within each category: AUTO-FIX rules first, then FLAG-ONLY rules.
 
 Hard rules:
 - Do NOT change public method signatures
@@ -144,7 +141,7 @@ Print: list of fixed issues and any skipped with reason.
 
 ## 📖 RULES REFERENCE
 
-All prompts above reference a **RULES REFERENCE** — the full list of categorised SonarQube rules with auto-fix (`\[A]`) and flag-only (`\[F]`) annotations.
+All prompts above reference a **RULES REFERENCE** — the full list of 94 categorised SonarQube rules, every one a safe, fully-automatic auto-fix.
 
 The rules live in a separate file:
 

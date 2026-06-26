@@ -1,8 +1,8 @@
 # SonarQube Rules Excluded from AI Prompts
 
-This file documents the **113 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md`.
+This file documents the **184 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **94** fully-automatic, safe auto-fix rules in the prompts.
 
-A rule is excluded when its fix is not mechanical, cannot be applied safely without risking compile errors or runtime breakage, or needs more than a single file to apply correctly. Excluded rules are grouped below by priority: **Breaking** (most dangerous) → **Conditional** → **Re-audit** → **Removed** (the rest). Each rule appears in exactly one section.
+A rule is excluded when its fix is not mechanical, cannot be applied safely without risking compile errors or runtime breakage, needs more than a single file to apply correctly, or can only be flagged for a human rather than fixed automatically. Excluded rules are grouped below by priority: **Breaking** (most dangerous) → **Conditional** → **Re-audit** → **Flag-only / review-needed** → **Removed** (the rest). Each rule appears in exactly one section.
 
 ---
 
@@ -84,6 +84,48 @@ or it changes runtime behavior. These are *not* flag-only candidates, because th
 > first performs a codebase-wide reference update alongside the rename; S116 / S1700 / S2387 only with
 > a "field is never serialized or accessed via reflection" pre-check. Group B has no safe re-add path
 > — every fix changes observable behavior, so it needs a human to confirm the original was a defect.
+
+---
+
+## 🔵 Flag-only / review-needed (2026-06) — demoted to keep every prompt fully automatic
+
+These **71 rules** were dropped so the prompts apply *only* safe, hands-off fixes. They split two ways.
+
+**Flag-only (54) — the AI can detect the issue but can only mark it with a `// TODO`; a human still writes the actual fix.** The correct fix needs intent, a value, or a design decision the AI must not guess.
+
+| Rule | Rule | Rule | Rule | Rule | Rule |
+|------|------|------|------|------|------|
+| S2583 | S2589 | S1764 | S2183 | S2112 | S2639 |
+| S3039 | S3864 | S3958 | S3959 | S4034 | S1143 |
+| S1181 | S2235 | S2737 | S3346 | S127  | S1994 |
+| S2175 | S2189 | S2251 | S2252 | S3020 | S3923 |
+| S3981 | S5413 | S6417 | S6466 | S2168 | S2274 |
+| S2276 | S2445 | S3014 | S3078 | S6901 | S2975 |
+| S1210 | S1874 | S2970 | S5738 | S5803 | S5960 |
+| S6838 | S2925 | S5845 | S5958 | S6103 | S5542 |
+| S5547 | S2676 | S3398 | S2232 | S2689 | S6810 |
+
+**Review-needed (17) — the AI *could* edit the code, but the change alters runtime behavior or requires guessing intent, so it must be developer-reviewed.**
+
+| Rule | Category | Why it needs review |
+|------|----------|---------------------|
+| **S4348** | Lambda | Generating a real `Iterator` needs the right backing field/size — a wrong guess breaks iteration |
+| **S6204** | Lambda | `toUnmodifiableList()` → `toList()` differs on null handling |
+| **S1150** | Lambda | `Enumeration` → `Iterator` changes the API — unsafe if the method is public |
+| **S1166** | Exception | Logging a swallowed exception assumes the swallow was a defect, not intentional |
+| **S1989** | Exception | Wrapping a servlet method swallows exceptions that previously propagated to the container |
+| **S2142** | Exception | Restoring the interrupt flag changes how interruption propagates |
+| **S2272** | Exception | Adding the exhaustion check changes `Iterator.next()` behavior |
+| **S2273** | Concurrency | Must pick the correct monitor to `synchronized` on — the wrong lock is a silent bug |
+| **S2446** | Concurrency | `notify()` → `notifyAll()` changes thread wake-up / scheduling |
+| **S3067** | Concurrency | `synchronized(getClass())` → `Class.class` changes lock identity under subclassing |
+| **S5164** | Concurrency | Wrong placement of the `ThreadLocal` try/finally can clear the value too early |
+| **S6218** | Serialization | Must pick which fields define record `equals`/`hashCode` — a wrong set changes equality |
+| **S4274** | Annotations | `assert` → `if/throw` now always throws (asserts can be disabled in prod) |
+| **S3415** | Test | Must guess which `assertEquals` argument is "expected" — a wrong guess bakes in the error |
+| **S5831** | Test | Restructuring into `SoftAssertions.assertSoftly` needs the right scope |
+| **S5838** | Test | Mapping a chained assertion to the right dedicated method can change what is asserted |
+| **S5866** | Test | Adding `UNICODE_CASE` changes which strings the regex matches |
 
 ---
 
@@ -169,7 +211,8 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 | 🔴 Breaking | 4 | Never auto-apply — require manual review + codebase-wide search |
 | 🟡 Conditional | 7 | Apply only after the stated pre-check passes |
 | 🟠 Re-audit demotions | 29 | Removed from auto-fix — rename / behavior-change risk |
+| 🔵 Flag-only / review-needed | 71 | Dropped so prompts stay fully automatic — flag-only (54) or needs developer review (17) |
 | ⚪ Removed | 73 | Not auto-fixable — require human judgment or domain knowledge |
-| **Total excluded** | **113** | |
+| **Total excluded** | **184** | |
 
 *improvecode.ai*
