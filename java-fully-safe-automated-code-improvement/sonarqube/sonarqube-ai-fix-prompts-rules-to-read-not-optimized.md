@@ -1,6 +1,6 @@
 # 📖 RULES REFERENCE — human-readable form
 
-*The same 76 rules as `sonarqube-ai-fix-prompts-rules.md`, expanded with fuller descriptions and examples.*
+*The same 72 rules as `sonarqube-ai-fix-prompts-rules.md`, expanded with fuller descriptions and examples.*
 *Every rule is a safe, mechanical auto-fix applied without human intervention. Rules that could only flag a `// TODO`, or whose fix could change behavior or require guessing intent, live in `sonarqube-excluded-rules.md`.*
 
 ---
@@ -96,7 +96,7 @@
 
 ## LAMBDA AND FUNCTIONAL
 
-*(S1488, S1602, S1611, S2438, S3012, S3631, S4065)*
+*(S1488, S1602, S1611, S2438, S4065)*
 
 * Return the expression directly instead of assign-then-return
   `String result = compute(); return result;` → `return compute();` — skip if the variable is used in a `finally` block or try-with-resources (S1488)
@@ -106,36 +106,24 @@
   `(x) -> x.getName()` → `x -> x.getName()` (S1611)
 * A `Thread` wrapping a `Thread` (where a `Runnable` is expected) → use a lambda
   `new Thread(myThread)` where `myThread` is a Thread → `new Thread(() -> myThread.run())` (S2438)
-* Replace loop copies with built-in methods
-  `for (X x : src) dst.add(x)` → `dst.addAll(src)`
-  `for (int i=0; i<n; i++) dst[i] = src[i]` → `System.arraycopy(src, 0, dst, 0, n)` (S3012)
-* Use `Arrays.stream()` for simple primitive-array aggregations only (`int[]`, `long[]`, `double[]`)
-  `for (int x : arr) { sum += x; }` → `int sum = Arrays.stream(arr).sum()`
-  Only for sum/count/average — never convert loops with complex logic (S3631)
 * `ThreadLocal` anonymous subclass → `ThreadLocal.withInitial(ArrayList::new)` (S4065)
 
 ---
 
 ## EXCEPTION HANDLING
 
-*(S108, S2151)*
+*(S2151)*
 
-* Empty catch block → add logging
-  `log.warn("Ignored {}: {}", e.getClass().getSimpleName(), e.getMessage(), e)`
-  If no logger exists, add `private static final Logger log = LoggerFactory.getLogger(ClassName.class)` first (S108)
 * Remove the `runFinalizersOnExit()` call entirely (S2151)
 
 ---
 
 ## COLLECTIONS AND LOOPS
 
-*(S1155, S1319, S3012, S3878, S4838)*
+*(S1155, S3878, S4838)*
 
 * Use `isEmpty()` instead of `size()`/`length()` comparisons
   `list.size() == 0` → `list.isEmpty()`, `str.length() == 0` → `str.isEmpty()` (S1155)
-* Declare collection variables using the interface type
-  `ArrayList<Order> list` → `List<Order> list`, `HashMap<K,V> map` → `Map<K,V> map` (S1319)
-* Array/list copied with a loop → use a built-in (see LAMBDA AND FUNCTIONAL S3012) (S3012)
 * Array created for a varargs call → `method(new String[]{"a", "b"})` → `method("a", "b")` (S3878)
 * Raw `Map` iteration → add the generic type parameter: `Map` → `Map<String, X>` (S4838)
 

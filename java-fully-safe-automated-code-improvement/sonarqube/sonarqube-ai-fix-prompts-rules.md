@@ -1,6 +1,6 @@
 # RULES REFERENCE
 
-*76 safe, mechanical auto-fix rules. Every rule is applied automatically — no human intervention — and never changes public API, business logic, or compilation. Rules that could only add a `// TODO` flag, or whose fix could change runtime behavior or require guessing intent, were moved to `sonarqube-excluded-rules.md`.*
+*72 safe, mechanical auto-fix rules. Every rule is applied automatically — no human intervention — and never changes public API, business logic, or compilation. Rules that could only add a `// TODO` flag, or whose fix could change runtime behavior or require guessing intent, were moved to `sonarqube-excluded-rules.md`.*
 
 ---
 
@@ -65,15 +65,12 @@
 - Lambda block single return → expression: `x -> { return x.getName(); }` → `x -> x.getName()` (S1602)
 - Remove parens around single lambda param: `(x) -> x.getName()` → `x -> x.getName()` (S1611)
 - Thread wrapping Thread → lambda: `new Thread(myThread)` where myThread is Thread → `new Thread(() -> myThread.run())` (S2438)
-- Loop copy → built-in: `for (X x : src) dst.add(x)` → `dst.addAll(src)` · `for (int i=0; i<n; i++) dst[i]=src[i]` → `System.arraycopy(src, 0, dst, 0, n)` (S3012)
-- Primitive array simple aggregation → stream: `for (int x : arr) { sum += x; }` → `Arrays.stream(arr).sum()` — only sum/count/average; never apply to loops with complex logic (S3631)
 - ThreadLocal anonymous class → `ThreadLocal.withInitial(ArrayList::new)` (S4065)
 
 ---
 
 ## EXCEPTION HANDLING
 
-- Empty catch → add: `log.warn("Ignored {}: {}", e.getClass().getSimpleName(), e.getMessage(), e)` — if no logger exists, add `private static final Logger log = LoggerFactory.getLogger(ClassName.class)` first (S108)
 - Remove `runFinalizersOnExit()` call entirely (S2151)
 
 ---
@@ -81,8 +78,6 @@
 ## COLLECTIONS AND LOOPS
 
 - `list.size() == 0` → `list.isEmpty()` · `str.length() == 0` → `str.isEmpty()` (S1155)
-- Collection variable → interface type: `ArrayList<X> list` → `List<X> list` · `HashMap<K,V> map` → `Map<K,V> map` (S1319)
-- Loop array/list copy → use built-in (see LAMBDA AND FUNCTIONAL S3012) (S3012)
 - Array created for varargs: `method(new String[]{"a", "b"})` → `method("a", "b")` (S3878)
 - Raw Map iteration → add generic type parameter: `Map` → `Map<String, X>` (S4838)
 

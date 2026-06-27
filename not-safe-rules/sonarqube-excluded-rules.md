@@ -1,6 +1,6 @@
 # SonarQube Rules Excluded from AI Prompts
 
-This file documents the **202 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **76** fully-automatic, safe auto-fix rules in the prompts.
+This file documents the **206 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **72** fully-automatic, safe auto-fix rules in the prompts.
 
 A rule is excluded when its fix is not mechanical, cannot be applied safely without risking compile errors or runtime breakage, needs more than a single file to apply correctly, or can only be flagged for a human rather than fixed automatically. Excluded rules are grouped below by priority: **Breaking** (most dangerous) → **Conditional** → **Re-audit** → **Flag-only / review-needed** → **Removed** (the rest). Each rule appears in exactly one section.
 
@@ -159,6 +159,24 @@ That fails the "100% automatic, no human" bar, so they now require developer rev
 
 ---
 
+## 🟤 SAFE-prompt alignment re-audit (2026-06) — compiles clean but not behavior-safe
+
+A cross-check against the Claude Code **SAFE refactoring prompts** (`refactor-prompts-safe.md`,
+whose tier is gated by *compile-only* verification) demoted these **4 rules** from
+`sonarqube-ai-fix-prompts-rules.md`. Each compiles cleanly, so a compile-only gate waves it
+through — yet each can change observable behavior or fail a CI gate with **no compile error** to
+catch it. The SAFE prompts already route the same operations to their AGGRESSIVE (test-gated,
+diff-reviewed) tier; this aligns the Sonar set with that decision.
+
+| Rule | Category | Why it is not 100% safe |
+|------|----------|--------------------------|
+| **S108** | Exception Handling | Logging an empty catch adds observable output — log-asserting tests (Logback `ListAppender`, count checks) can fail, and an intentional/expected swallow becomes noise. Compiles clean. (The SAFE prompts demote this same op to AGGRESSIVE.) |
+| **S3631** | Lambda & Functional | Loop → stream aggregation: deciding a loop is a "simple" sum/count/average is a judgment call, and the rewrite can change overflow / ordering / short-circuit behavior. No compile error if the AI misjudges. |
+| **S3012** | Lambda & Functional / Collections | Loop copy → `addAll` / `System.arraycopy` changes semantics on null elements, concurrent modification, and length/bounds — a silently different result, no compile error. |
+| **S1319** | Collections | Concrete → interface declared type (`ArrayList`→`List`) can silently change overload resolution at a call site (`foo(List)` vs `foo(ArrayList)`); the overload case compiles but calls a different method. |
+
+---
+
 ## ⚪ Removed — excluded entirely (require human judgment or domain knowledge)
 
 These rules are not auto-fixable. They require understanding intent, security context, architecture, or data flow that AI cannot safely infer from a single file. Grouped by reason below.
@@ -243,7 +261,8 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 | 🟠 Re-audit demotions | 29 | Removed from auto-fix — rename / behavior-change risk |
 | 🔵 Flag-only / review-needed | 71 | Dropped so prompts stay fully automatic — flag-only (54) or needs developer review (17) |
 | 🟣 Safety re-audit (2026-06) | 18 | Silent behavior change, reflection risk, or guessing intent — needs developer review |
+| 🟤 SAFE-prompt alignment (2026-06) | 4 | Compiles clean but changes behavior / fails a CI gate — aligned with the SAFE prompts' AGGRESSIVE tier |
 | ⚪ Removed | 73 | Not auto-fixable — require human judgment or domain knowledge |
-| **Total excluded** | **202** | |
+| **Total excluded** | **206** | |
 
 *improvecode.ai*
