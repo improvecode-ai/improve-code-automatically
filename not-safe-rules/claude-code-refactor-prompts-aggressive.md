@@ -6,7 +6,8 @@ change runtime behavior, serialization, framework wiring, or test outcomes. Two 
 1. **Demoted-from-SAFE** rules — they compile cleanly but can silently change behavior or fail a
    test/CI gate (null→empty collections, field renames, `System.out` deletion, lambda→method-ref,
    for→for-each; and: renaming params of public/annotated methods, numeric-literal extraction,
-   `@NotNull`/`@Nullable` annotations, import sorting, logging empty catches, what-comment removal).
+   `@NotNull`/`@Nullable` annotations, import sorting, logging empty catches, comment removal
+   (commented-out code + what-comments)).
 2. **Maximizing** rules — broader rewrites (streams, final fields/classes, constructor/Lombok
    generation, logger unification, exception narrowing).
 
@@ -296,19 +297,29 @@ First apply COLLECTIONS from the SAFE file. Read pom.xml once for the Java versi
 
 ## 💬 10. COMMENTS (aggressive)
 ```
-First apply COMMENTS from the SAFE file. Then, for each .java file:
+COMMENTS has no SAFE apply — all comment removal is here. For each .java file:
 1. Read the file
 2. Apply:
+   - Remove commented-out code blocks (consecutive // lines that are disabled code) (demoted from SAFE)
    - Remove what-comments that only describe what the very next line does (demoted from SAFE)
-     ⚠ what-vs-why is a judgment call and deletion is IRREVERSIBLE (the intent is gone from the
-       diff). NEVER remove a tool directive — the skip-list (// NOSONAR, // NOPMD, // noinspection,
-       // @formatter:*, // CHECKSTYLE:*, //$NON-NLS-N$) is NOT exhaustive; when unsure, keep it.
+     ⚠ telling commented-out code, a what-comment, and a tool directive apart is a JUDGMENT call,
+       and deletion is IRREVERSIBLE (the intent is gone from the diff).
+     ⚠ NEVER remove a tool directive — the skip-list (// NOSONAR, // NOPMD, // noinspection,
+       // @formatter:*, // CHECKSTYLE:*, //$NON-NLS-N$) is NOT exhaustive; removing one can FAIL a
+       CI quality gate. When unsure, keep it.
    - For TODO/FIXME with no description: add context inferred from surrounding code
      // TODO: [method] — [inferred intent]
    - If a what-comment is the ONLY documentation for a poorly named method/variable: do NOT
      remove it — instead emit a rename suggestion (this prompt does not perform the rename)
 3. Output two sections: (1) changes applied  (2) rename suggestions
 4. Save.
+
+Hard rules — NEVER remove:
+- Tool directives (see the skip-list above — it is NOT exhaustive; when unsure, keep it)
+- Javadoc comments (/** ... */)
+- Comments explaining WHY (business reason, workaround, limitation)
+- TODO or FIXME tags (annotate them instead)
+- License headers
 ```
 
 ---
@@ -348,8 +359,8 @@ Step 2 — for each category, first apply the SAFE mega prompt's operations for 
     rename params of public/annotated methods ⚠ reflective name binding (Spring/JAX-RS/Jackson);
     extract numeric literals ⚠ type/precision (1000L, 0.1f); add @NotNull/@Nullable ⚠ IntelliJ
     runtime instrumentation + null-analysis CI gate; sort imports ⚠ project Checkstyle/Spotless
-    order; log empty catches ⚠ observable output / log-asserting tests; remove what-comments
-    ⚠ judgment + irreversible info loss
+    order; log empty catches ⚠ observable output / log-asserting tests; remove comments
+    (commented-out code + what-comments) ⚠ judgment + irreversible info loss
   - Rename fields/constants/private-methods ⚠ serialization/JPA/reflection
   - Extract complex conditions; nested if → guard clauses ⚠ control-flow inversion
   - System.out → delete or log.info ⚠ CLI/stdout-capturing tests; lambdas → method refs

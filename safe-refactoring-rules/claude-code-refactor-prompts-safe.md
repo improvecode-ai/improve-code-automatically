@@ -409,8 +409,10 @@ Hard rules:
 
 ## 💬 10. COMMENTS
 **Strategy: file-by-file**
-**SAFE removes commented-out code blocks only.** Removing what-comments is a what-vs-why
-judgment call with irreversible information loss → **AGGRESSIVE file**.
+**No SAFE apply — all comment removal is now in the AGGRESSIVE file.** Both what-comment removal
+(a what-vs-why judgment call) and commented-out-code removal (telling disabled code from a tool
+directive needs judgment, the directive skip-list is not exhaustive, and deletion is irreversible)
+require review → **AGGRESSIVE file**. The educational block stays here.
 
 ### EDUCATIONAL
 ```
@@ -419,7 +421,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 2. Find:
    - Inline comments that describe WHAT the next line does (// increment counter, // call service)
      (→ removal applied in AGGRESSIVE file)
-   - Commented-out code blocks
+   - Commented-out code blocks (→ removal applied in AGGRESSIVE file)
 3. Output as table: File | Line | Type | Comment text | Verdict
 4. Do NOT modify. Move to next file.
 
@@ -430,23 +432,17 @@ is actually a tool directive (see guard below)."
 
 ### SAFE
 ```
-For each .java file in [PACKAGE_PATH], one at a time:
-1. Read the file
-2. Apply:
-   - Remove commented-out code blocks (consecutive lines starting with //)
-   (Removing what-comments is in the AGGRESSIVE file — judgment/irreversible-info-loss risk.)
-3. For every removal, print: "Removed from FileName.java:LINE — [comment text]"
-4. Save. Move to next file.
-
-Hard rules — NEVER remove:
-- Tool directives, even if they look like throwaway comments:
-  // NOSONAR, // NOPMD, // noinspection..., // @formatter:off, // @formatter:on,
-  // CHECKSTYLE:OFF, // CHECKSTYLE:ON, //$NON-NLS-1$ (and $NON-NLS-N$)
-  (removing these can FAIL a CI quality gate — this list is NOT exhaustive; when unsure, keep it)
-- Javadoc comments (/** ... */)
-- Comments explaining WHY (business reason, workaround, limitation)
-- TODO or FIXME tags
-- License headers
+DEMOTED — there is no SAFE apply for this category. All comment removal is now in the AGGRESSIVE
+file. Why it left the compile-only SAFE tier (comments never break compilation, so a compile-only
+gate cannot catch a wrong removal):
+  1. Telling commented-out CODE from a real comment, and either of those from a TOOL DIRECTIVE
+     (// NOSONAR, // NOPMD, // noinspection, // @formatter:*, // CHECKSTYLE:*, //$NON-NLS-N$), is a
+     JUDGMENT call — and that skip-list is NOT exhaustive, so a removal can silently FAIL a CI
+     quality gate with no compile error.
+  2. What-vs-why is a judgment call; a removed "what" comment can be the only documentation for a
+     poorly named member.
+  3. Deletion is IRREVERSIBLE — the intent is gone from the working tree.
+Remove comments from the AGGRESSIVE file, where the gate also runs the tests and you review the diff.
 ```
 
 ---
@@ -510,7 +506,7 @@ Scan (SAFE-tier only):
 7. Exceptions — unnecessary same-type casts (logging empty catches → AGGRESSIVE)
 8. Boilerplate — missing @Override
 9. Collections — isEmpty(), Collections.sort→list.sort, diamond operator
-10. Comments — commented-out code (what-comments → AGGRESSIVE; excluding tool directives)
+10. Comments — commented-out code blocks & what-comments (all removal → AGGRESSIVE)
 11. Tests — assertEquals(true/false/null) patterns
 
 Output per finding: | Category | File | Line | Before | After | Why |
@@ -540,8 +536,7 @@ Process files one at a time, in this order per file:
       public/protected or web/binding/serialization-annotated methods → AGGRESSIVE file)
   11. Extract repeated (same-concept) string literals to constants
   12. Remove unnecessary same-type casts
-  13. Remove commented-out code (NEVER tool directives; what-comment removal → AGGRESSIVE file)
-  14. Fix assertEquals(true/false/null) in test files (add the static import if missing)
+  13. Fix assertEquals(true/false/null) in test files (add the static import if missing)
 
 After EACH file's category pass, and at the end, run the Verification gate (compile + revert).
 
@@ -550,7 +545,8 @@ Hard rules:
 - Do NOT touch fields at all (no field rename, no final on fields)
 - The following all live in the AGGRESSIVE file — do NOT do them in SAFE:
   sort/reorder imports; extract magic numbers to constants; add @NotNull/@Nullable; log empty
-  catch blocks; remove what-comments; rename params of public/annotated methods
+  catch blocks; remove comments (commented-out code AND what-comments); rename params of
+  public/annotated methods
 - Do NOT delete System.out, convert lambdas to method refs, convert loops to for-each/streams,
   replace null returns with empty collections, narrow catch(Exception), add Lombok, add new
   dependencies, or generate constructors — all of those live in the AGGRESSIVE file
