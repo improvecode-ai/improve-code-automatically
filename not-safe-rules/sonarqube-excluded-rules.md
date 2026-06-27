@@ -1,6 +1,6 @@
 # SonarQube Rules Excluded from AI Prompts
 
-This file documents the **206 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **72** fully-automatic, safe auto-fix rules in the prompts.
+This file documents the **209 rules** that were reviewed but **not included** in `sonarqube-ai-fix-prompts-rules.md` — leaving **69** fully-automatic, safe auto-fix rules in the prompts.
 
 A rule is excluded when its fix is not mechanical, cannot be applied safely without risking compile errors or runtime breakage, needs more than a single file to apply correctly, or can only be flagged for a human rather than fixed automatically. Excluded rules are grouped below by priority: **Breaking** (most dangerous) → **Conditional** → **Re-audit** → **Flag-only / review-needed** → **Removed** (the rest). Each rule appears in exactly one section.
 
@@ -177,6 +177,22 @@ diff-reviewed) tier; this aligns the Sonar set with that decision.
 
 ---
 
+## 🟢 Behavior-correcting fixes (2026-06) — change observable output even when the fix is correct
+
+These **3 rules** are genuine SonarQube *bug fixes*, but each changes observable program output —
+so even when the fix is correct, a previously-green test can go red and a downstream consumer can
+see a different value. They compile cleanly, so a compile-only / no-review gate cannot tell that
+behavior changed. That fails the "100% automatic, no human review" bar, so they require a
+developer to confirm the original was a defect and to re-baseline any affected tests.
+
+| Rule | Category | Why it is not 100% safe |
+|------|----------|--------------------------|
+| **S2200** | String | `a.compareTo(b) == -1` → `< 0` changes the result for any comparator that returns magnitudes other than -1/0/1; a test pinning the old `== -1` value goes red. |
+| **S5841** | Test Quality | Adding `assertThat(list).isNotEmpty()` before `allMatch`/`doesNotContain` turns a previously-vacuous pass on an empty collection into a failure — a correct fix, but it breaks a green test. |
+| **S4517** | Structure | `return buf[pos]` → `buf[pos] & 0xFF` in `InputStream.read()` changes the returned value for bytes > 127 (was negative, now 128–255); any caller/test relying on the old signed value changes. |
+
+---
+
 ## ⚪ Removed — excluded entirely (require human judgment or domain knowledge)
 
 These rules are not auto-fixable. They require understanding intent, security context, architecture, or data flow that AI cannot safely infer from a single file. Grouped by reason below.
@@ -252,6 +268,29 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 
 ---
 
+## 🧩 Partially covered (guarded) — safe subset is auto-fixed; the edge case below is excluded
+
+> **These rules are NOT additional exclusions — they stay in `sonarqube-ai-fix-prompts-rules.md` and
+> are already counted in the 69.** Each is applied automatically *only while its GUARD holds*; the
+> guarded-out edge case — the part that would change behavior or fail a gate with **no compile error**
+> to catch it — is excluded and documented here for traceability. When the AI meets the edge case it
+> SKIPS and notes it. (Almost every rule in the prompts carries a GUARD; listed below are the ones
+> whose skipped case is a genuine *silent* behavior change, so the split matters most.)
+
+| Rule | Safe part — auto-fixed in the prompts | Guarded-out edge case — excluded (skipped) |
+|------|----------------------------------------|---------------------------------------------|
+| **S1121** | Extract an assignment out of an `if` condition | NEVER inside a `while`/`for` condition — the assignment must re-run each iteration, so hoisting it makes an infinite/incorrect loop |
+| **S1125** | Redundant boolean literal on a primitive `boolean` (`x == true` → `x`) | Boxed `Boolean` — `== true` unboxes (NPE on null) and `return x` would hand back `null` |
+| **S1195 / S1197** | Array designator on a single-variable declaration (`int a[]` → `int[] a`) | Multi-variable `int a[], b;` — moving `[]` to the type would silently make `b` an array too |
+| **S2864** | `keySet()` → `entrySet()` on a plain `HashMap`-style map | Lazy/computing/defaulted maps, or loops that mutate the map, where `entry.getValue()` ≠ a fresh `map.get(k)` |
+| **S6818** | Remove `@Autowired` on a sole constructor, Spring 4.3+ | Older Spring, or a custom processor that scans for `@Autowired` — injection would silently break |
+| **S2066** | Add `static` to a serializable inner class with no outer references | Inner class uses outer-instance members, or instances are persisted — the serialized form changes and old data fails to deserialize |
+| **S2061** | Fix the signature of a genuine serialization hook | An ordinary same-named method — fixing its signature would silently activate it as a serialization callback |
+| **S2062** | `readResolve` private → protected on a non-subclassed class | A subclassed class where the canonical-instance / singleton logic must not be inherited |
+| **S4925** | Remove `Class.forName(driver)` with a normal classpath | Shaded/repackaged/uber-jars that may lack the `META-INF/services` driver registration → "No suitable driver" at runtime |
+
+---
+
 ## Summary
 
 | Section | Count | Action |
@@ -262,7 +301,12 @@ These rules are excluded as requiring context. Per-rule reasoning is not yet doc
 | 🔵 Flag-only / review-needed | 71 | Dropped so prompts stay fully automatic — flag-only (54) or needs developer review (17) |
 | 🟣 Safety re-audit (2026-06) | 18 | Silent behavior change, reflection risk, or guessing intent — needs developer review |
 | 🟤 SAFE-prompt alignment (2026-06) | 4 | Compiles clean but changes behavior / fails a CI gate — aligned with the SAFE prompts' AGGRESSIVE tier |
+| 🟢 Behavior-correcting (2026-06) | 3 | Genuine bug fixes that change observable output — break green tests / downstream values, need re-baseline |
 | ⚪ Removed | 73 | Not auto-fixable — require human judgment or domain knowledge |
-| **Total excluded** | **206** | |
+| **Total excluded** | **209** | |
+
+> 🧩 **Partially covered (guarded)** rules (S1121, S1125, S1195/S1197, S2864, S6818, S2066, S2061,
+> S2062, S4925) are **not** in this total — they stay in the prompts and are counted in the 69. Only
+> their guarded-out edge case is excluded; see the 🧩 section above.
 
 *improvecode.ai*

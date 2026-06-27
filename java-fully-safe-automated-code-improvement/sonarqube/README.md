@@ -10,7 +10,7 @@ and you're spending hours on work that follows fixed, predictable rules.
 **This file gives AI everything it needs to fix those issues automatically.**
 No configuration. No plugins. Works with Claude Code and GitHub Copilot.
 
-> ✅ **All 72 rules are safe, fully automatic AI fixes — no breaking changes, no business logic touched, no human intervention, applicable to any Java project.**
+> ✅ **All 69 rules are safe, fully automatic AI fixes — no breaking changes, no business logic touched, no human intervention, applicable to any Java project.**
 > Rules that could only add a TODO, or whose fix could change behavior or require guessing intent, are not in the prompts — they live in `sonarqube-excluded-rules.md`.
 
 ---
@@ -61,15 +61,15 @@ e.g. `src/main/java/com/example/order`
 
 ---
 
-## 📊 Coverage — 72 rules across 15 categories
+## 📊 Coverage — 69 rules across 15 categories
 
 ### Rule coverage statistics
 
 | | Count |
 |---|---|
 | Public SonarQube Java rules reviewed | **278** |
-| Rules included in prompts (safe, fully automatic) | **72** (26%) |
-| Rules excluded (flag-only, review-needed, or human judgment) | **206** (74%) |
+| Rules included in prompts (safe, fully automatic) | **69** (25%) |
+| Rules excluded (flag-only, review-needed, or human judgment) | **209** (75%) |
 
 > All excluded rules are documented with reasoning in `sonarqube-excluded-rules.md`.
 
@@ -81,7 +81,7 @@ e.g. `src/main/java/com/example/order`
 | Dead Code | 3 | Unused imports, parameters, local variables |
 | Null and Boolean | 3 | isEmpty(), redundant boolean literals |
 | Code Style | 20 | Modifier order, redundant parens, charset constants |
-| String | 3 | toString on String, compareTo, parameterized logging |
+| String | 2 | toString on String, parameterized logging |
 | Lambda and Functional | 5 | Lambda expression form, assign-then-return, ThreadLocal.withInitial |
 | Exception Handling | 1 | runFinalizersOnExit removal |
 | Collections and Loops | 3 | isEmpty(), varargs, raw map generics |
@@ -89,12 +89,12 @@ e.g. `src/main/java/com/example/order`
 | Serialization | 5 | Constructors, signatures, clone(), readResolve/readObject |
 | Annotations and Boilerplate | 6 | @Override, @Repeatable unwrap, nullability on primitives |
 | Spring | 4 | @RestController, @PathVariable, single-constructor @Autowired cleanup |
-| Test Quality | 7 | AssertJ reorders, JUnit5 visibility/@Nested, Mockito static import |
+| Test Quality | 6 | AssertJ reorders, JUnit5 visibility/@Nested, Mockito static import |
 | Security (Mechanical) | 2 | runFinalizersOnExit removal, secure temp files |
-| Structure | 9 | compareTo contract, entrySet, try-with-resources |
-| **Total** | **72** ¹ | |
+| Structure | 8 | compareTo contract, entrySet, try-with-resources |
+| **Total** | **69** ¹ | |
 
-¹ *3 rules appear in 2 categories (S1155, S2151, S4454) — category sum is 75, unique total is 72.*
+¹ *3 rules appear in 2 categories (S1155, S2151, S4454) — category sum is 72, unique total is 69.*
 
 ---
 
@@ -116,7 +116,7 @@ Every rule in this file is:
 * **Mechanical** — AI applies a fixed, predictable transformation
 * **Non-breaking** — does not change public API, business logic, or compilation
 * **Fully automatic** — applied with no human intervention; the AI never guesses
-* **Verified** — all 72 rules confirmed in public SonarQube sources
+* **Verified** — all 69 rules confirmed in public SonarQube sources
 
 ---
 
@@ -125,6 +125,6 @@ Every rule in this file is:
 | File                                                                       | Contents |
 |----------------------------------------------------------------------------|---|
 | [`sonarqube-ai-fix-prompts.md`](./sonarqube-ai-fix-prompts.md)             | 4 ready-to-use prompts (FIX ALL, CATEGORY, PR, SONAR REPORT) |
-| [`sonarqube-ai-fix-prompts-rules.md`](./sonarqube-ai-fix-prompts-rules.md) | Full RULES REFERENCE — 72 safe, fully-automatic auto-fix rules |
-| [`sonarqube-excluded-rules.md`](./sonarqube-excluded-rules.md)             | 206 excluded rules with documented reasons — Breaking, Conditional, Re-audit, Flag-only/review, Safety re-audit, SAFE-prompt alignment, Removed |
-| [`sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md`](./sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md) | The same 72 rules in an expanded, human-readable form — fuller per-rule descriptions and examples |
+| [`sonarqube-ai-fix-prompts-rules.md`](./sonarqube-ai-fix-prompts-rules.md) | Full RULES REFERENCE — 69 safe, fully-automatic auto-fix rules |
+| [`sonarqube-excluded-rules.md`](./sonarqube-excluded-rules.md)             | 209 excluded rules with documented reasons — Breaking, Conditional, Re-audit, Flag-only/review, Safety re-audit, SAFE-prompt alignment, Behavior-correcting, Removed |
+| [`sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md`](./sonarqube-ai-fix-prompts-rules-to-read-not-optimized.md) | The same 69 rules in an expanded, human-readable form — fuller per-rule descriptions and examples |

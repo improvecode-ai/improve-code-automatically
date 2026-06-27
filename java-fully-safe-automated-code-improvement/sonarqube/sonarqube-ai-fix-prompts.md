@@ -141,7 +141,7 @@ Print: list of fixed issues and any skipped with reason.
 
 ## 📖 RULES REFERENCE
 
-All prompts above reference a **RULES REFERENCE** — the full list of 72 categorised SonarQube rules, every one a safe, fully-automatic auto-fix.
+All prompts above reference a **RULES REFERENCE** — the full list of 69 categorised SonarQube rules, every one a safe, fully-automatic auto-fix.
 
 The rules live in a separate file:
 
