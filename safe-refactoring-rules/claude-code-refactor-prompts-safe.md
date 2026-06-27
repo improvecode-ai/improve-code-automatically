@@ -39,18 +39,23 @@ the AGGRESSIVE file, where behavior can change.
 
 ## 🏷️ 1. NAMING
 **Strategy: file-by-file** — naming decisions are local to one file
-**SAFE scope: local variables and parameters only.** Field, constant, and method renames can
-break serialization / reflection / public API → **AGGRESSIVE file**.
+**SAFE scope: local variables, and parameters of private/package-private, non-annotated methods.**
+Field, constant, and method renames can break serialization / reflection / public API, and
+parameters of public or binding-annotated methods are reflectively bound (Spring/JAX-RS/Jackson)
+→ **AGGRESSIVE file**.
 
 ### EDUCATIONAL
 ```
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
-2. Find naming issues on LOCAL VARIABLES and PARAMETERS only:
+2. Find naming issues on LOCAL VARIABLES and SAFE-SCOPE PARAMETERS only:
    - Abbreviated names (usr, mgr, cfg, d, s, f, tmp, res)
    - Boolean locals/params not phrased as questions (active → isActive, valid → isValid)
+   SAFE-SCOPE PARAMETERS = parameters of a method that is NOT public/protected AND carries no
+   web/binding/serialization annotation. (→ params of public/annotated methods: AGGRESSIVE file.)
 3. Output findings as a table: File | Line | Type | Before | After | Why
-4. Note (do not act on) field/constant/method names — these are handled in the AGGRESSIVE file.
+4. Note (do not act on) field/constant/method names and excluded params (public/annotated
+   methods) — these are handled in the AGGRESSIVE file.
 5. Do NOT modify any file. Move to next file.
 
 At the end: "Found X safe naming issues (locals/params) in Y files."
@@ -62,14 +67,21 @@ boolean question-form (isActive) reads as a predicate at the call site."
 ```
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
-2. Apply, to LOCAL VARIABLES and METHOD PARAMETERS only:
+2. Apply, to LOCAL VARIABLES and SAFE-SCOPE METHOD PARAMETERS only:
    - Expand abbreviated names — infer the full name from type and usage context
    - Rename booleans to question form (active → isActive)
 3. Print: "FileName.java — changed X names: [old→new]"
 4. Save. Move to next file.
 
 Hard rules (these make the rename behavior-safe):
-- ONLY local variables and method parameters. NEVER fields, constants, methods, or anything public.
+- ONLY local variables and SAFE-SCOPE method parameters. NEVER fields, constants, methods, or
+  anything public.
+- GUARD (parameter scope) — rename a PARAMETER only when its method is NOT public/protected AND
+  neither the method nor the parameter carries a web/binding/serialization annotation:
+  @RequestMapping/@GetMapping/@PostMapping/@RequestParam/@PathVariable, JAX-RS
+  @Path/@PathParam/@QueryParam, @JsonProperty/@JsonCreator, MapStruct. Parameter NAMES of such
+  methods are reflectively bound — renaming them can silently change request/JSON mapping.
+  Skip those and note them (→ AGGRESSIVE file). Local variables are always in scope.
 - GUARD — skip the rename if the new name would:
   (a) match the name of any FIELD in scope (would shadow the field and silently change behavior)
   (b) match an existing local/parameter in the same scope
@@ -122,15 +134,16 @@ Hard rules:
 
 ## 🧱 3. CODE STRUCTURE
 **Strategy: file-by-file**
-**Note:** deleting `System.out` and converting lambdas to method references can change behavior
-→ **AGGRESSIVE file**. SAFE keeps only the no-behavior-change parts.
+**Note:** deleting `System.out`, converting lambdas to method references, and extracting numeric
+literals to constants can change behavior → **AGGRESSIVE file**. SAFE keeps only the
+no-behavior-change parts (unused-import removal, repeated-string extraction).
 
 ### EDUCATIONAL
 ```
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Find:
-   - Numeric literals (except 0, 1, -1) not assigned to a named constant
+   - Numeric literals (except 0, 1, -1) not assigned to a named constant (→ applied in AGGRESSIVE file)
    - String literals appearing 3+ times that clearly mean the same thing
    - Unused imports (not referenced in code OR in Javadoc {@link}/@see)
 3. Output as table: File | Line | Issue | Before | After
@@ -144,15 +157,14 @@ For each .java file in [PACKAGE_PATH], one at a time:
 2. Apply:
    - Remove unused imports
      GUARD: keep any import still referenced in Javadoc ({@link}, {@linkplain}, @see, @throws)
-   - Extract numeric literals (except 0, 1, -1) to private static final constants at top of class
-     Name them based on usage context
    - Extract string literals appearing 3+ times to private static final String constants
      GUARD: only when every occurrence clearly denotes the SAME concept; if any occurrence
      might mean something different, leave them all alone
-3. Print: "FileName.java — removed X imports, extracted Y constants, Z string constants"
+3. Print: "FileName.java — removed X imports, extracted Z string constants"
 4. Save. Move to next file.
 
 Hard rules:
+- Do NOT extract numeric literals to constants (type/precision risk → AGGRESSIVE file)
 - Do NOT remove System.out (behavior/test/CLI risk → AGGRESSIVE file)
 - Do NOT convert lambdas to method references (capture-timing/overload risk → AGGRESSIVE file)
 - Do NOT remove unused private methods or fields (may be used via reflection → AGGRESSIVE file)
@@ -163,11 +175,14 @@ Hard rules:
 
 ## 🔒 4. NULL SAFETY
 **Strategy: file-by-file**
-**SAFE adds documentation annotations only.** Replacing `return null` with an empty collection
-changes behavior → **AGGRESSIVE file**.
+**No SAFE apply — adding `@NotNull`/`@Nullable` is now in the AGGRESSIVE file.** The educational
+block stays here (it explains the contract); the apply step moved because it is not guaranteed
+behavior-safe under a compile-only gate (see the demotion note below). Replacing `return null`
+with an empty collection also changes behavior → **AGGRESSIVE file**.
 
 > **Annotation library:** JetBrains `org.jetbrains.annotations.@NotNull` / `@Nullable` —
-> documentation / IDE / static-analysis contracts only, **NOT enforced at runtime**.
+> documentation / IDE / static-analysis contracts only, **NOT enforced at runtime by plain
+> javac** (but see the demotion note: IntelliJ's build CAN instrument them).
 
 ### EDUCATIONAL
 ```
@@ -186,28 +201,16 @@ NOT checked at runtime — nothing is thrown. Runtime enforcement (requireNonNul
 
 ### SAFE
 ```
-PREFLIGHT (once): read pom.xml / build.gradle. Is org.jetbrains:annotations a dependency?
-  - If NO: do not add any annotation (it would not compile). Report:
-    "Skipped null-safety annotations — org.jetbrains:annotations is not on the classpath."
-    Stop this category.
-  - If YES: continue.
-
-For each .java file in [PACKAGE_PATH], one at a time:
-1. Read the file
-2. Apply:
-   - Add @NotNull to parameters used directly without a null check
-   - Add @Nullable to parameters that have an explicit null check (if param == null)
-   - Add @NotNull to a return type if the method has no "return null"
-   - Add @Nullable to a return type if the method has at least one "return null"
-3. Print: "FileName.java — added X @NotNull, Y @Nullable"
-4. Save. Move to next file.
-
-Hard rules:
-- Use org.jetbrains.annotations.@NotNull / @Nullable (added in PREFLIGHT only if already present)
-- These are NOT runtime-enforced — SAFE changes zero runtime behavior
-- Do NOT add Objects.requireNonNull (→ AGGRESSIVE file)
-- Do NOT replace "return null" with empty collections (→ AGGRESSIVE file)
-- Do NOT change Optional return types
+DEMOTED — there is no SAFE apply for this category. Adding @NotNull/@Nullable is now in the
+AGGRESSIVE file. Why it left the compile-only SAFE tier (each failure mode compiles cleanly, so
+the compile-only gate cannot catch it):
+  1. IntelliJ's build can INSTRUMENT @NotNull into a runtime null-check that THROWS where the
+     code previously tolerated null → runtime behavior change, breaks tests.
+  2. @Nullable on a return can FAIL a strict null-analysis CI gate (NullAway / IDEA-as-error)
+     at every unchecked call site.
+  3. The contract is INFERRED from the body and can be factually wrong (a param that legitimately
+     receives null in some path gets marked @NotNull).
+Apply null-safety annotations from the AGGRESSIVE file, where the gate also runs the tests.
 ```
 
 ---
@@ -251,14 +254,15 @@ Hard rules:
 
 ## 🧹 6. FORMATTING AND STYLE
 **Strategy: file-by-file** (SAFE needs no cross-file scan)
-Logger unification and whitespace normalization → **AGGRESSIVE file**.
+Import sorting (the reorder), logger unification, and whitespace normalization → **AGGRESSIVE
+file**. SAFE keeps unused-import removal and blank-line grouping (both behavior-safe).
 
 ### EDUCATIONAL
 ```
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Find:
-   - Import ordering issues (unsorted, unused)
+   - Unused imports (sorting/reordering is applied in the AGGRESSIVE file)
    - Methods missing blank-line grouping (validation block / logic block / return)
 3. Output as table: File | Issue | Line | Before | After
 4. Do NOT modify. Move to next file.
@@ -269,15 +273,15 @@ For each .java file in [PACKAGE_PATH], one at a time:
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Apply:
-   - Sort imports: static first, then java.* , javax.* , org.* , com.* , then project packages
    - Remove unused imports (keep Javadoc-referenced ones)
    - Add blank lines to separate logical method sections where clearly missing:
      (1) parameter validation  (2) business logic  (3) return
      — add blank lines only, NEVER remove existing ones
-3. Print: "FileName.java — sorted imports, added X blank lines"
+3. Print: "FileName.java — removed X unused imports, added Y blank lines"
 4. Save. Move to next file.
 
 Hard rules:
+- Do NOT sort/reorder imports (project Checkstyle/Spotless order risk → AGGRESSIVE file)
 - Do NOT reformat indentation or change line lengths
 - Do NOT touch System.out or loggers (→ Code Structure / AGGRESSIVE file)
 - Do NOT remove trailing whitespace or normalize blank lines
@@ -288,8 +292,10 @@ Hard rules:
 
 ## ⚠️ 7. EXCEPTIONS
 **Strategy: file-by-file**
-**SAFE logs empty catches only when a logger already exists** (no new dependency). Adding a new
-logger, or narrowing catch types, → **AGGRESSIVE file**.
+**SAFE removes unnecessary same-type casts only.** Logging empty catches (even when a logger
+already exists) adds observable output that log-asserting tests can fail on, and an
+intentional/expected catch becomes noise → **AGGRESSIVE file**. Adding a new logger, or narrowing
+catch types, → **AGGRESSIVE file**.
 
 ### EDUCATIONAL
 ```
@@ -311,16 +317,14 @@ is unchanged."
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Apply:
-   - For empty catch blocks: ONLY if a logger (log, logger, LOG) ALREADY exists in the class,
-     add: log.warn("Unexpected {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
-     If NO logger exists, leave the catch unchanged and note it (adding a logger → AGGRESSIVE file).
    - Remove unnecessary casts where the variable's declared type already equals the cast target
      GUARD: only when the cast target type is identical to the variable's declared static type
      (so overload resolution cannot change)
-3. Print: "FileName.java — logged X empty catches, removed Y unnecessary casts, skipped Z (no logger)"
+3. Print: "FileName.java — removed Y unnecessary casts"
 4. Save. Move to next file.
 
 Hard rules:
+- Do NOT log empty catch blocks — even with an existing logger (observable-output/test risk → AGGRESSIVE file)
 - Do NOT add a new logger / dependency (→ AGGRESSIVE file)
 - Do NOT narrow catch(Exception) (→ AGGRESSIVE file)
 - Do NOT convert finally to try-with-resources
@@ -405,6 +409,8 @@ Hard rules:
 
 ## 💬 10. COMMENTS
 **Strategy: file-by-file**
+**SAFE removes commented-out code blocks only.** Removing what-comments is a what-vs-why
+judgment call with irreversible information loss → **AGGRESSIVE file**.
 
 ### EDUCATIONAL
 ```
@@ -412,6 +418,7 @@ For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Find:
    - Inline comments that describe WHAT the next line does (// increment counter, // call service)
+     (→ removal applied in AGGRESSIVE file)
    - Commented-out code blocks
 3. Output as table: File | Line | Type | Comment text | Verdict
 4. Do NOT modify. Move to next file.
@@ -426,16 +433,16 @@ is actually a tool directive (see guard below)."
 For each .java file in [PACKAGE_PATH], one at a time:
 1. Read the file
 2. Apply:
-   - Remove inline comments that only describe what the very next line does
    - Remove commented-out code blocks (consecutive lines starting with //)
+   (Removing what-comments is in the AGGRESSIVE file — judgment/irreversible-info-loss risk.)
 3. For every removal, print: "Removed from FileName.java:LINE — [comment text]"
 4. Save. Move to next file.
 
 Hard rules — NEVER remove:
 - Tool directives, even if they look like throwaway comments:
-  // NOSONAR, // noinspection..., // @formatter:off, // @formatter:on,
-  // CHECKSTYLE:OFF, // CHECKSTYLE:ON, //$NON-NLS-1$ (and $NON-NLS-N$), // PMD...
-  (removing these can FAIL a CI quality gate)
+  // NOSONAR, // NOPMD, // noinspection..., // @formatter:off, // @formatter:on,
+  // CHECKSTYLE:OFF, // CHECKSTYLE:ON, //$NON-NLS-1$ (and $NON-NLS-N$)
+  (removing these can FAIL a CI quality gate — this list is NOT exhaustive; when unsure, keep it)
 - Javadoc comments (/** ... */)
 - Comments explaining WHY (business reason, workaround, limitation)
 - TODO or FIXME tags
@@ -493,16 +500,17 @@ Perform a full SAFE-tier quality scan of [PACKAGE_PATH].
 Process files one at a time: read → scan → move on. Do NOT modify any file.
 
 Scan (SAFE-tier only):
-1. Naming — abbreviations / non-question booleans on LOCALS and PARAMS only
+1. Naming — abbreviations / non-question booleans on LOCALS and SAFE-SCOPE PARAMS only
+   (params of public/annotated methods → AGGRESSIVE)
 2. Logic — boolean-return simplification, x==true/false/!=true, double negation
-3. Structure — magic numbers, repeated same-concept strings, unused imports
-4. Null safety — missing @NotNull/@Nullable (documentation only)
+3. Structure — repeated same-concept strings, unused imports (magic numbers → AGGRESSIVE)
+4. Null safety — (annotations moved to AGGRESSIVE; educational/why stays here)
 5. Immutability — final candidates (locals and params only)
-6. Formatting — blank-line grouping, import order
-7. Exceptions — empty catches (logger already present), unnecessary same-type casts
+6. Formatting — blank-line grouping, unused imports (import sorting/order → AGGRESSIVE)
+7. Exceptions — unnecessary same-type casts (logging empty catches → AGGRESSIVE)
 8. Boilerplate — missing @Override
 9. Collections — isEmpty(), Collections.sort→list.sort, diamond operator
-10. Comments — what-comments, commented-out code (excluding tool directives)
+10. Comments — commented-out code (what-comments → AGGRESSIVE; excluding tool directives)
 11. Tests — assertEquals(true/false/null) patterns
 
 Output per finding: | Category | File | Line | Before | After | Why |
@@ -515,37 +523,35 @@ Apply all SAFE refactoring to [PACKAGE_PATH]. This is the complete SAFE tier —
 below is behavior-preserving (or guarded so it cannot change behavior).
 
 PREFLIGHT (read once, do not modify): pom.xml / build.gradle —
-  - Is org.jetbrains:annotations present? (gates step 13)
   - Java version (gates the diamond-on-anonymous-class guard)
 
 Process files one at a time, in this order per file:
   1. Remove unused imports (keep Javadoc-referenced)
-  2. Sort imports (static → java → javax → org → com → project)
-  3. Add blank-line grouping inside methods (add only, never remove)
-  4. Add @Override to eligible methods
-  5. size()==0 → isEmpty(); size()>0 → !isEmpty()
-  6. Add diamond operator (skip anonymous classes unless Java 9+)
-  7. Collections.sort(list) → list.sort(null); Collections.sort(list, c) → list.sort(c)
-  8. Simplify boolean returns (primitive boolean only) and x==true/false/!=true
-  9. Double negation → positive form (only if the positive name exists in scope)
-  10. final on local variables and parameters
-  11. Rename LOCALS and PARAMS only — expand abbreviations, boolean→question form
-      (skip if the new name shadows a field or collides with an existing local)
-  12. Extract magic numbers to private static final constants
-  13. Extract repeated (same-concept) string literals to constants
-  14. Add @NotNull/@Nullable (JetBrains, documentation-only) — ONLY if PREFLIGHT found the dependency
-  15. Log empty catch blocks — ONLY if a logger already exists in the class
-  16. Remove unnecessary same-type casts
-  17. Remove what-comments and commented-out code (NEVER tool directives)
-  18. Fix assertEquals(true/false/null) in test files (add the static import if missing)
+  2. Add blank-line grouping inside methods (add only, never remove)
+  3. Add @Override to eligible methods
+  4. size()==0 → isEmpty(); size()>0 → !isEmpty()
+  5. Add diamond operator (skip anonymous classes unless Java 9+)
+  6. Collections.sort(list) → list.sort(null); Collections.sort(list, c) → list.sort(c)
+  7. Simplify boolean returns (primitive boolean only) and x==true/false/!=true
+  8. Double negation → positive form (only if the positive name exists in scope)
+  9. final on local variables and parameters
+  10. Rename LOCALS and SAFE-SCOPE PARAMS only — expand abbreviations, boolean→question form
+      (skip if the new name shadows a field or collides with an existing local; skip params of
+      public/protected or web/binding/serialization-annotated methods → AGGRESSIVE file)
+  11. Extract repeated (same-concept) string literals to constants
+  12. Remove unnecessary same-type casts
+  13. Remove commented-out code (NEVER tool directives; what-comment removal → AGGRESSIVE file)
+  14. Fix assertEquals(true/false/null) in test files (add the static import if missing)
 
 After EACH file's category pass, and at the end, run the Verification gate (compile + revert).
 
 Hard rules:
 - Do NOT touch public API signatures (public/protected methods, fields, interfaces)
 - Do NOT touch fields at all (no field rename, no final on fields)
+- The following all live in the AGGRESSIVE file — do NOT do them in SAFE:
+  sort/reorder imports; extract magic numbers to constants; add @NotNull/@Nullable; log empty
+  catch blocks; remove what-comments; rename params of public/annotated methods
 - Do NOT delete System.out, convert lambdas to method refs, convert loops to for-each/streams,
   replace null returns with empty collections, narrow catch(Exception), add Lombok, add new
   dependencies, or generate constructors — all of those live in the AGGRESSIVE file
-- @NotNull/@Nullable are documentation only (no requireNonNull in SAFE)
 ```

@@ -3,8 +3,10 @@
 These prompts contain refactorings that are **low-risk but NOT guaranteed safe** — they can
 change runtime behavior, serialization, framework wiring, or test outcomes. Two groups live here:
 
-1. **Demoted-from-SAFE** rules — they compile cleanly but can silently change behavior
-   (null→empty collections, field renames, `System.out` deletion, lambda→method-ref, for→for-each).
+1. **Demoted-from-SAFE** rules — they compile cleanly but can silently change behavior or fail a
+   test/CI gate (null→empty collections, field renames, `System.out` deletion, lambda→method-ref,
+   for→for-each; and: renaming params of public/annotated methods, numeric-literal extraction,
+   `@NotNull`/`@Nullable` annotations, import sorting, logging empty catches, what-comment removal).
 2. **Maximizing** rules — broader rewrites (streams, final fields/classes, constructor/Lombok
    generation, logger unification, exception narrowing).
 
@@ -39,9 +41,18 @@ treat the change as unverified and flag it for manual review.
 
 ## 🏷️ 1. NAMING (aggressive)
 ```
-First apply NAMING from the SAFE file (locals/params). Then, for each .java file:
+First apply NAMING from the SAFE file (locals + safe-scope params). Then, for each .java file:
 1. Read the file
 2. Apply:
+   - Rename method PARAMETERS of public/protected or annotated methods (demoted from SAFE) —
+     expand abbreviations; boolean → question form
+     ⚠ parameter NAMES are reflectively bound: Spring @RequestParam/@PathVariable WITHOUT an
+       explicit value, JAX-RS @PathParam/@QueryParam, Jackson @JsonCreator / record / constructor
+       binding, and MapStruct all resolve by parameter name. Renaming silently changes
+       request/JSON mapping. (This does NOT change the method signature — names are not part of it.)
+     GUARD: if the method or the parameter carries such a binding annotation, FIRST add the
+       explicit name (e.g. @RequestParam("oldName")) so the wire contract is pinned, then rename;
+       otherwise skip and note it. Also skip if the build relies on -parameters for any framework.
    - Rename boolean FIELDS to question form (active → isActive)
    - Remove redundant class prefix from private fields (User.userName → User.name)
    - Rename mis-cased constants to SCREAMING_SNAKE_CASE
@@ -58,7 +69,9 @@ First apply NAMING from the SAFE file (locals/params). Then, for each .java file
 4. Save.
 
 Hard rules:
-- Do NOT rename anything public or package-private
+- Do NOT rename public/package-private methods, fields, or types. Public/annotated method
+  PARAMETER names MAY be renamed under the parameter guard above (names are not part of the
+  signature), but nothing else public is renamed.
 - Do NOT rename if intent is ambiguous — skip and note it
 ```
 
@@ -86,6 +99,12 @@ First apply LOGIC from the SAFE file. Then, for each .java file:
 First apply STRUCTURE from the SAFE file. Then, for each .java file:
 1. Read the file
 2. Apply:
+   - Extract numeric literals (except 0, 1, -1) to private static final constants (demoted from
+     SAFE); name them from usage context
+     ⚠ preserve the literal's EXACT type and suffix — 1000L vs 1000 (long vs int), 0.1f vs 0.1
+       (float vs double precision), 0x.. / 0b.. forms. A wrong type silently changes arithmetic,
+       overflow, or rounding. Skip if the literal sits in an annotation attribute that needs a
+       constant of a specific type, or if a good name/intent is unclear.
    - System.out handling (demoted from SAFE):
      classify each System.out — clearly debug/throwaway → delete; appears to be real application
      output → convert to log.info(...) via the existing logger, or add an SLF4J logger if missing
@@ -113,9 +132,23 @@ First apply STRUCTURE from the SAFE file. Then, for each .java file:
 
 ## 🔒 4. NULL SAFETY (aggressive)
 ```
-First apply NULL SAFETY from the SAFE file (documentation annotations). Then, for each .java file:
+PREFLIGHT (once): read pom.xml / build.gradle. Is org.jetbrains:annotations a dependency?
+  - If NO: skip the @NotNull/@Nullable step below (it would not compile) and report it.
+  - If YES: continue.
+
+For each .java file:
 1. Read the file
 2. Apply:
+   - Add @NotNull/@Nullable documentation annotations (demoted from SAFE):
+     @NotNull to params used without a null check; @Nullable to params with an explicit null
+     check; @NotNull to a return with no "return null"; @Nullable to a return with at least one
+     "return null"
+     ⚠ IntelliJ's build can INSTRUMENT @NotNull into a runtime null-check that THROWS where null
+       was previously tolerated — a behavior change that surfaces only when tests run.
+     ⚠ @Nullable on a return can FAIL a strict null-analysis CI gate (NullAway / IDEA-as-error)
+       at unchecked call sites.
+     ⚠ the contract is INFERRED from the body and can be wrong (a param that legitimately gets
+       null in some path) — verify before trusting it.
    - Replace "return null" with an empty collection (demoted from SAFE):
      List.of() / Set.of() / Map.of() / Collections.empty* — for List/Set/Map/Collection returns
      ⚠ callers that branch on null (if (result == null)) will take a different path, and tests
@@ -166,6 +199,12 @@ Step 2 — first apply FORMATTING from the SAFE file. Then, for each file:
      private static final Logger log = LoggerFactory.getLogger(ClassName.class);
      ⚠ requires SLF4J on the classpath; changes log configuration/output and may break tests that
        assert on log content or config. (size()==0 → isEmpty() is owned by Collections — not here.)
+   - Sort imports: static first, then java.* , javax.* , org.* , com.* , then project packages
+     (demoted from SAFE)
+     ⚠ if the project enforces a DIFFERENT import order via Checkstyle / Spotless /
+       google-java-format, this fails the style CI gate. FIRST read the project's import-order
+       config and match it; if it conflicts with the order above, follow the project's order or
+       skip — do not impose this order blindly.
    - Remove trailing whitespace
    - Normalize blank lines: max 1 consecutive inside a method body, max 2 between methods
      ⚠ NEVER touch whitespace inside a text block (\"\"\" ... \"\"\") — trailing spaces and blank
@@ -181,9 +220,14 @@ Step 2 — first apply FORMATTING from the SAFE file. Then, for each file:
 First apply EXCEPTIONS from the SAFE file. Then, for each .java file:
 1. Read the file
 2. Apply:
-   - For empty catch blocks with NO existing logger: add an SLF4J logger declaration, then the
-     log.warn(...) line
-     ⚠ requires SLF4J on the classpath.
+   - Log empty catch blocks (demoted from SAFE — covers BOTH cases):
+     if a logger (log, logger, LOG) ALREADY exists, add:
+       log.warn("Unexpected {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);
+     if NO logger exists, add an SLF4J logger declaration first, then the log.warn(...) line
+     ⚠ adding a log line changes OBSERVABLE output — tests that assert on log content/counts
+       (e.g. Logback ListAppender) can fail, and an intentionally/expected-swallowed exception
+       becomes noise. Verify the catch is truly an oversight before logging it.
+     ⚠ the no-logger case also requires SLF4J on the classpath.
    - Where catch(Exception e) is used: if ALL calls in the try only declare specific checked
      exceptions visible in this file, narrow catch to those types; if ambiguous, skip and add
      // TODO: narrow exception type — currently catching Exception broadly
@@ -255,6 +299,10 @@ First apply COLLECTIONS from the SAFE file. Read pom.xml once for the Java versi
 First apply COMMENTS from the SAFE file. Then, for each .java file:
 1. Read the file
 2. Apply:
+   - Remove what-comments that only describe what the very next line does (demoted from SAFE)
+     ⚠ what-vs-why is a judgment call and deletion is IRREVERSIBLE (the intent is gone from the
+       diff). NEVER remove a tool directive — the skip-list (// NOSONAR, // NOPMD, // noinspection,
+       // @formatter:*, // CHECKSTYLE:*, //$NON-NLS-N$) is NOT exhaustive; when unsure, keep it.
    - For TODO/FIXME with no description: add context inferred from surrounding code
      // TODO: [method] — [inferred intent]
    - If a what-comment is the ONLY documentation for a poorly named method/variable: do NOT
@@ -296,6 +344,12 @@ Step 1 — read once (do not modify yet):
 
 Step 2 — for each category, first apply the SAFE mega prompt's operations for that area, then
   apply the AGGRESSIVE operations above. Highest-impact, each tagged with its risk:
+  - Demoted-from-SAFE (compile clean but can change behavior / fail a test or CI gate):
+    rename params of public/annotated methods ⚠ reflective name binding (Spring/JAX-RS/Jackson);
+    extract numeric literals ⚠ type/precision (1000L, 0.1f); add @NotNull/@Nullable ⚠ IntelliJ
+    runtime instrumentation + null-analysis CI gate; sort imports ⚠ project Checkstyle/Spotless
+    order; log empty catches ⚠ observable output / log-asserting tests; remove what-comments
+    ⚠ judgment + irreversible info loss
   - Rename fields/constants/private-methods ⚠ serialization/JPA/reflection
   - Extract complex conditions; nested if → guard clauses ⚠ control-flow inversion
   - System.out → delete or log.info ⚠ CLI/stdout-capturing tests; lambdas → method refs
