@@ -122,8 +122,8 @@ Every rule in this file is:
 
 ## Files in this folder
 
-| File                                                                       | Contents |
-|----------------------------------------------------------------------------|---|
+| File                                                                     | Contents |
+|--------------------------------------------------------------------------|---|
 | [`sonarqube-ai-fix-prompts.md`](sonarqube-ai-fix-prompts.md)             | 4 ready-to-use prompts (FIX ALL, CATEGORY, PR, SONAR REPORT) |
 | [`sonarqube-ai-fix-prompts-rules.md`](sonarqube-ai-fix-prompts-rules.md) | Full RULES REFERENCE — 69 safe, fully-automatic auto-fix rules, each with a per-rule Guard |
-| [`sonarqube-excluded-rules.md`](./sonarqube-excluded-rules.md)             | 209 excluded rules with documented reasons — Breaking, Conditional, Re-audit, Flag-only/review, Safety re-audit, SAFE-prompt alignment, Behavior-correcting, Removed |
+| [`sonarqube-excluded-rules.md`](./excluded/sonarqube-excluded-rules.md)  | 209 excluded rules with documented reasons — Breaking, Conditional, Re-audit, Flag-only/review, Safety re-audit, SAFE-prompt alignment, Behavior-correcting, Removed |
