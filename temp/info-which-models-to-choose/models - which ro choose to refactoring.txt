@@ -1,0 +1,135 @@
+📘 Copilot vs Claude Sonnet — Refactoring Comparison
+PDF‑Ready Course Edition (English)
+🧩 1. Scope of Refactoring
+GitHub Copilot (GPT‑5.4 / GPT‑5.3‑codex)
+Best for single files
+
+Strong for module‑level refactoring
+
+Limited for full‑repository transformations
+
+Excellent for PR‑level changes
+
+Claude Sonnet
+Excellent for large modules
+
+Best‑in‑class for full‑repository refactoring
+
+Strong pattern detection across many files
+
+Great for system‑level consistency
+
+🧠 2. Context Understanding
+Capability	Copilot	Claude Sonnet
+File context	Excellent	Excellent
+Module context	Good	Outstanding
+Repository context	Limited	Excellent
+Pattern recognition	Medium	High
+Global renaming	Weak	Strong
+
+
+Summary:  
+Copilot sees the file. Claude sees the system.
+
+🛠 3. Prompt Handling Style
+Copilot
+Prefers short, imperative, checklist‑style prompts
+
+Ignores long descriptions
+
+Works best with 5–10 clear bullet points
+
+Executes local transformations reliably
+
+Claude Sonnet
+Handles long, multi‑layered instructions
+
+Understands complex refactoring strategies
+
+Can follow multi‑page prompts
+
+Ideal for architectural or conceptual tasks
+
+🔧 4. Types of Refactoring
+Refactoring Type	Copilot	Claude Sonnet
+Formatting	⭐⭐⭐⭐⭐	⭐⭐⭐⭐
+Local naming	⭐⭐⭐⭐⭐	⭐⭐⭐⭐
+Global naming	⭐	⭐⭐⭐⭐⭐
+Local logic cleanup	⭐⭐⭐⭐⭐	⭐⭐⭐⭐
+Module‑level logic	⭐⭐⭐	⭐⭐⭐⭐⭐
+Class structure	⭐⭐⭐⭐	⭐⭐⭐⭐⭐
+Architectural refactoring	⭐⭐	⭐⭐⭐⭐⭐
+Null‑safety	⭐⭐⭐⭐	⭐⭐⭐⭐⭐
+Immutability	⭐⭐⭐⭐	⭐⭐⭐⭐⭐
+Boilerplate removal	⭐⭐⭐⭐⭐	⭐⭐⭐⭐⭐
+
+
+Summary:  
+Copilot = micro‑refactoring.
+Claude = macro‑refactoring.
+
+🚀 5. Refactoring Modes
+Mode	Copilot	Claude Sonnet
+Educational	Good	Excellent
+Ultra‑Safe	Excellent	Very Good
+Aggressive	Medium	Excellent
+Architect‑Level	Weak	Outstanding
+
+
+Summary:  
+Claude is better for teaching and architecture.
+Copilot is better for safe, mechanical cleanup.
+
+⚙️ 6. Behavior in IDE
+Copilot
+Best autocomplete on the market
+
+Excellent inline refactoring
+
+Limited multi‑file awareness
+
+Great for fast, local improvements
+
+Claude Sonnet
+Strong multi‑file reasoning
+
+Great for batch refactoring
+
+Ideal for large‑scale transformations
+
+Not as strong in autocomplete
+
+🧨 7. Risk Profile
+Risk	Copilot	Claude Sonnet
+Accidental logic changes	Low	Low
+Over‑aggressive changes	Very low	Medium
+Too few changes	High	Low
+Inconsistency	Medium	Low
+
+
+Summary:  
+Copilot is conservative.
+Claude is consistent and bold.
+
+⭐ Final Summary
+Copilot is the best tool for:
+
+local refactoring
+
+PR‑level cleanup
+
+safe, mechanical improvements
+
+fast iteration inside the IDE
+
+
+Claude Sonnet is the best tool for:
+
+module‑level transformations
+
+full‑repository refactoring
+
+architectural consistency
+
+deep analysis and teaching
+

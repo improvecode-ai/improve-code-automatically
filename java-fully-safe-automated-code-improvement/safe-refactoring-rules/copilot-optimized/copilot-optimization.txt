@@ -1,0 +1,27 @@
+⭐ Co trzeba zoptymalizować pod GitHub Copilot?
+✔ 1. Copilot lubi krótkie, punktowe instrukcje
+Zamiast 10 linijek opisu → 3–5 punktów.
+
+✔ 2. Copilot działa najlepiej, gdy prompt zaczyna się od czasownika
+Np.:
+
+“Refactor this module by applying the following rules…”
+
+✔ 3. Copilot nie lubi długich opisów „why”
+To jest dobre dla Claude, ale Copilot to ignoruje.
+
+✔ 4. Copilot nie rozumie trybów edukacyjnych tak dobrze
+Trzeba to napisać bardziej jednoznacznie:
+
+“Do NOT modify code. Only comment and explain.”
+
+✔ 5. Copilot nie robi globalnych rename’ów
+Trzeba dopisać:
+
+“Apply changes only within this module, not across the entire repository.”
+
+✔ 6. Copilot nie lubi długich promptów w jednym bloku
+Lepiej:
+krótkie sekcje,
+jasne nagłówki,
+checklisty.

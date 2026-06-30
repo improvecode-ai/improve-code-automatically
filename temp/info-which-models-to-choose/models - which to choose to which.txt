@@ -1,0 +1,131 @@
+
+
+⭐ 1. GitHub Copilot (GPT‑5.4 / GPT‑5.3‑codex)
+
+👉 Optymalny do:
+• refaktoryzacji kodu
+
+• zmian strukturalnych
+
+• zmian syntaktycznych
+
+• pracy w module/plikach
+
+• generowania kodu
+
+• uzupełniania kodu w locie
+
+
+
+👉 Jak reaguje na prompty:
+◇ lubi krótkie, imperatywne, checklistowe instrukcje
+
+◇ ignoruje długie opisy
+
+◇ działa lokalnie (na pliku lub module)
+
+◇ nie robi globalnych rename’ów
+
+◇ nie analizuje długich promptów w całości
+
+◇ nie rozumie „esejowych” poleceń
+
+
+
+👉 Co to oznacza:
+Prompty muszą być krótkie, konkretne, punktowe. Dlatego przygotowałem dla Ciebie wersję zoptymalizowaną pod Copilota.
+
+
+⭐ 2. Claude Sonnet
+
+👉 Optymalny do:
+◇ analizy dużych struktur
+
+◇ refaktoryzacji całych repozytoriów
+
+◇ długich promptów
+
+◇ złożonych instrukcji
+
+◇ pracy koncepcyjnej (architektura, analiza, wyjaśnienia)
+
+
+
+👉 Jak reaguje na prompty:
+◇ świetnie radzi sobie z długimi, opisowymi instrukcjami
+
+◇ rozumie kontekst repozytorium
+
+◇ potrafi wykrywać wzorce w setkach plików
+
+◇ potrafi robić globalne rename’y
+
+◇ potrafi stosować zasady konsekwentnie w całym projekcie
+
+
+
+👉 Co to oznacza:
+Prompty mogą być długie, opisowe, wielowarstwowe. Claude nie gubi się w tekście.
+
+
+⭐ 3. Różnica w praktyce (najważniejsze)
+
+| Zadanie | Copilot | Claude |
+| Refaktoryzacja jednego pliku | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Refaktoryzacja modułu | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Refaktoryzacja całego repo | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Złożone instrukcje | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Krótkie checklisty | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Wyjaśnienia edukacyjne | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| Globalne rename’y | ⭐ | ⭐⭐⭐⭐⭐ |
+| Analiza architektury | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+
+
+
+
+
+
+⭐ 4. Dlaczego przygotowałem osobną wersję promptów dla Copilota?
+Bo Copilot:
+◇ działa inaczej niż Claude,
+
+◇ ignoruje długie prompty,
+
+◇ nie wykonuje złożonych instrukcji,
+
+◇ nie analizuje repozytorium globalnie,
+
+◇ działa „tu i teraz” w kontekście pliku.
+
+
+Dlatego Twoje prompty muszą być:
+◇ krótkie,
+
+◇ punktowe,
+
+◇ imperatywne,
+
+◇ bez długich opisów,
+
+◇ bez meta‑komentarzy,
+
+◇ bez „esejów”.
+
+
+I właśnie takie Ci wygenerowałem.
+
+
+⭐ 5. Podsumowanie w jednym zdaniu
+Tak — model ma ogromne znaczenie. Copilot wymaga krótkich, checklistowych promptów, a Claude może pracować na długich, złożonych instrukcjach i całych repozytoriach.
+
+Jeśli chcesz, mogę teraz przygotować:
+
+🔹 porównanie „Copilot vs Claude” dla refaktoryzacji
+
+🔹 rekomendację, kiedy używać którego modelu
+
+🔹 wersję promptów zoptymalizowaną pod Claude Sonnet
+
+🔹 wersję „dual‑mode” — działa dobrze w obu modelach
+Powiedz tylko, którą opcję wybieramy.
+
