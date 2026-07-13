@@ -1,0 +1,43 @@
+{
+  "$comment": "Context Engineering bundle — bash (default / Git Bash) variant. On Windows without Git Bash, use settings.windows.json (swap 'bash' -> 'powershell' and .sh -> .ps1). See README.md.",
+  "statusLine": {
+    "type": "command",
+    "command": "bash",
+    "args": ["${CLAUDE_PROJECT_DIR}/.claude/statusline.sh"]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/prompt-check.sh"]
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.sh"]
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-read.sh"]
+          }
+        ]
+      }
+    ]
+  }
+}

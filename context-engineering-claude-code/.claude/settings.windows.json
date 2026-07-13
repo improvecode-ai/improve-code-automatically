@@ -1,0 +1,43 @@
+{
+  "$comment": "Windows / no-Git-Bash variant. Rename to settings.json (or merge) to use PowerShell scripts. Identical behavior to the bash variant.",
+  "statusLine": {
+    "type": "command",
+    "command": "powershell",
+    "args": ["-NoProfile", "-File", "${CLAUDE_PROJECT_DIR}/.claude/statusline.ps1"]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": ["-NoProfile", "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/prompt-check.ps1"]
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": ["-NoProfile", "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-bash.ps1"]
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell",
+            "args": ["-NoProfile", "-File", "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-read.ps1"]
+          }
+        ]
+      }
+    ]
+  }
+}

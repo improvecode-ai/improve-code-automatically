@@ -1,0 +1,4 @@
+# Shell scripts must stay LF — CRLF breaks the shebang under Git Bash (bad interpreter: sh^M).
+*.sh text eol=lf
+# PowerShell tolerates either; keep native.
+*.ps1 text
