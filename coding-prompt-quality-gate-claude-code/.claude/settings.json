@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"[Prompt Quality Gate] Before acting on a coding or change request silently check it against 6 checks: Single task / Specific criteria / Constraints / Context / Output format / Perspective not persona. If a key detail is missing then reply with the specific gaps plus a stronger version first and then proceed. If the request is clear then proceed with no gate commentary. If the user said 'just do it' then skip. Full rules in CLAUDE.md.\""
+          }
+        ]
+      }
+    ]
+  }
+}
