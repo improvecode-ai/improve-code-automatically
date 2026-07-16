@@ -12,6 +12,11 @@ the other way around.
 
 ## What's inside
 
+Two kinds of bundles live here: tools that **fix your Java code**, and tools that **fix how you
+talk to the AI** (prompt quality) or **how much it costs you** (context engineering).
+
+### 🛠️ Improve your code automatically with AI
+
 ### [sonarqube/](./sonarqube/)
 
 AI-fix prompts for SonarQube Java rules — 69 safe, fully-automatic rules across 15 categories
@@ -24,6 +29,8 @@ General Java refactoring prompts (naming, logic, immutability, collections, test
 SonarQube flags — split into a **SAFE** tier that runs fully automatically behind a compile-gate
 with auto-revert, and an **AGGRESSIVE** tier that can change behavior and requires a branch, a
 full test run, and a diff review.
+
+### 🧠 Prompt engineering & context engineering
 
 ### [coding-prompt-quality-gate-claude-code/](./coding-prompt-quality-gate-claude-code/)
 
